@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test</title>
+</head>
+<body>
+    <h1>🎉 Verbindung funktioniert!</h1>
+    <p>Wenn du das siehst, funktioniert der Server.</p>
+    <script>
+        fetch('/api/generate-quiz', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title: 'Test Quiz',
+                content: 'Das ist ein Test für die KI-Generierung.'
+            })
+        })
+        .then(r => r.json())
+        .then(d => console.log('✅ API funktioniert:', d))
+        .catch(e => console.log('❌ API Fehler:', e))
+    </script>
+</body>
+</html>
