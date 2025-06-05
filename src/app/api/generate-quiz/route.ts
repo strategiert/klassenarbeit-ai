@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { supabase } from '@/lib/supabase'
 import { generateQuizWithFallback } from '@/lib/ai-providers'
 
 interface QuizQuestion {
@@ -52,15 +53,25 @@ export async function POST(request: NextRequest) {
     // Generate unique subdomain
     const subdomain = generateSubdomain()
     
-    // Demo-Modus: Ohne echte Datenbank
-    const data = {
-      id: subdomain,
-      title,
-      content,
-      teacher_id: teacherId,
-      subdomain,
-      quiz_data: quizData,
-      created_at: new Date().toISOString()
+    // Save to Supabase database
+    const { data, error } = await supabase
+      .from('klassenarbeiten')
+      .insert({
+        title,
+        content,
+        teacher_id: teacherId,
+        subdomain,
+        quiz_data: quizData
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Supabase error:', error)
+      return NextResponse.json(
+        { error: 'Fehler beim Speichern in der Datenbank' },
+        { status: 500 }
+      )
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:8080'
