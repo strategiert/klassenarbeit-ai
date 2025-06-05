@@ -72,9 +72,24 @@ export async function callDeepSeek(content: string, title: string): Promise<Quiz
   const data = await response.json()
   let quizText = data.choices[0].message.content
   
+  console.log('🔍 Raw DeepSeek response:', quizText)
+  
+  // Clean up the response - extract JSON
   if (quizText.includes('```json')) {
     quizText = quizText.split('```json')[1].split('```')[0]
+  } else if (quizText.includes('```')) {
+    quizText = quizText.split('```')[1].split('```')[0]
   }
+  
+  // Find JSON object in the text
+  const jsonStart = quizText.indexOf('{')
+  const jsonEnd = quizText.lastIndexOf('}') + 1
+  
+  if (jsonStart >= 0 && jsonEnd > jsonStart) {
+    quizText = quizText.substring(jsonStart, jsonEnd)
+  }
+  
+  console.log('🧹 Cleaned JSON:', quizText)
   
   return JSON.parse(quizText.trim())
 }
@@ -103,9 +118,24 @@ export async function callClaude(content: string, title: string): Promise<QuizDa
   const data = await response.json()
   let quizText = data.content[0].text
   
+  console.log('🔍 Raw Claude response:', quizText)
+  
+  // Clean up the response - extract JSON
   if (quizText.includes('```json')) {
     quizText = quizText.split('```json')[1].split('```')[0]
+  } else if (quizText.includes('```')) {
+    quizText = quizText.split('```')[1].split('```')[0]
   }
+  
+  // Find JSON object in the text
+  const jsonStart = quizText.indexOf('{')
+  const jsonEnd = quizText.lastIndexOf('}') + 1
+  
+  if (jsonStart >= 0 && jsonEnd > jsonStart) {
+    quizText = quizText.substring(jsonStart, jsonEnd)
+  }
+  
+  console.log('🧹 Cleaned Claude JSON:', quizText)
   
   return JSON.parse(quizText.trim())
 }
@@ -134,9 +164,24 @@ export async function callOpenAI(content: string, title: string): Promise<QuizDa
   const data = await response.json()
   let quizText = data.choices[0].message.content
   
+  console.log('🔍 Raw OpenAI response:', quizText)
+  
+  // Clean up the response - extract JSON
   if (quizText.includes('```json')) {
     quizText = quizText.split('```json')[1].split('```')[0]
+  } else if (quizText.includes('```')) {
+    quizText = quizText.split('```')[1].split('```')[0]
   }
+  
+  // Find JSON object in the text
+  const jsonStart = quizText.indexOf('{')
+  const jsonEnd = quizText.lastIndexOf('}') + 1
+  
+  if (jsonStart >= 0 && jsonEnd > jsonStart) {
+    quizText = quizText.substring(jsonStart, jsonEnd)
+  }
+  
+  console.log('🧹 Cleaned OpenAI JSON:', quizText)
   
   return JSON.parse(quizText.trim())
 }

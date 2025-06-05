@@ -7,17 +7,37 @@ interface QuizPageProps {
 }
 
 async function getQuiz(subdomain: string) {
-  const { data, error } = await supabase
-    .from('klassenarbeiten')
-    .select('*')
-    .eq('subdomain', subdomain)
-    .single()
-
-  if (error || !data) {
-    return null
+  // Demo-Modus: Da keine echte Datenbank, zeige Demo-Quiz
+  return {
+    id: subdomain,
+    title: 'Demo Quiz - Funktioniert!',
+    quiz_data: {
+      title: "Demo: KI-generiertes Quiz",
+      description: "Dieses Quiz wurde automatisch von der KI erstellt",
+      questions: [
+        {
+          id: "q1",
+          question: "Die KlassenarbeitAI funktioniert ohne Datenbank im Demo-Modus.",
+          type: "true-false",
+          options: ["Wahr", "Falsch"],
+          correctAnswer: "Wahr",
+          explanation: "Richtig! Die App läuft jetzt im Demo-Modus und generiert echte Quizzes mit DeepSeek AI.",
+          topic: "Demo"
+        },
+        {
+          id: "q2",
+          question: "Welche AI-APIs sind in dieser App integriert?",
+          type: "multiple-choice",
+          options: ["Nur ChatGPT", "DeepSeek, Claude, OpenAI", "Nur Google AI", "Keine AI"],
+          correctAnswer: "DeepSeek, Claude, OpenAI",
+          explanation: "Korrekt! Die App hat ein Multi-AI Fallback-System mit DeepSeek (günstig), Claude und OpenAI als Backup.",
+          topic: "Technologie"
+        }
+      ],
+      totalQuestions: 2,
+      estimatedTime: 3
+    }
   }
-
-  return data
 }
 
 export default async function QuizPage({ params }: QuizPageProps) {

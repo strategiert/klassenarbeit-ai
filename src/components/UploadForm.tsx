@@ -61,13 +61,8 @@ export default function UploadForm() {
 
       const result = await response.json()
       
-      // Show success message with URL
-      alert(`Quiz erfolgreich erstellt!\n\nURL: ${result.url}\n\nDu kannst diese URL jetzt mit deinen Schülern teilen.`)
-      
-      // Reset form
-      setTitle('')
-      setTextContent('')
-      setFile(null)
+      // Show success with better UX
+      window.location.href = `/success?url=${encodeURIComponent(result.url)}&title=${encodeURIComponent(title)}`
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten')

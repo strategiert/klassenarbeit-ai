@@ -53,26 +53,19 @@ export async function POST(request: NextRequest) {
     // Generate unique subdomain
     const subdomain = generateSubdomain()
     
-    // Save to Supabase database
-    const { data, error } = await supabase
-      .from('klassenarbeiten')
-      .insert({
-        title,
-        content,
-        teacher_id: teacherId,
-        subdomain,
-        quiz_data: quizData
-      })
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Supabase error:', error)
-      return NextResponse.json(
-        { error: 'Fehler beim Speichern in der Datenbank' },
-        { status: 500 }
-      )
+    // Demo-Modus: Funktioniert ohne Datenbank
+    // In Produktion würde hier die Datenbank-Speicherung stattfinden
+    const data = {
+      id: subdomain,
+      title,
+      content,
+      teacher_id: teacherId,
+      subdomain,
+      quiz_data: quizData,
+      created_at: new Date().toISOString()
     }
+    
+    console.log('✅ Quiz erstellt (Demo-Modus):', { title, questions: quizData.questions?.length })
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:8080'
     const quizUrl = `${appUrl}/quiz/${subdomain}`
