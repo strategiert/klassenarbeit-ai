@@ -4,6 +4,7 @@ import { useState } from 'react'
 
 export default function UploadForm() {
   const [inputMethod, setInputMethod] = useState<'text' | 'file'>('text')
+  const [mode, setMode] = useState<'quiz' | 'discovery'>('quiz')
   const [textContent, setTextContent] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [title, setTitle] = useState('')
@@ -41,8 +42,9 @@ export default function UploadForm() {
         }
       }
 
-      // Call API to generate quiz
-      const response = await fetch('/api/generate-quiz', {
+      // Call appropriate API based on mode
+      const apiEndpoint = mode === 'discovery' ? '/api/create-discovery-path' : '/api/generate-quiz'
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -62,7 +64,11 @@ export default function UploadForm() {
       const result = await response.json()
       
       // Show success with better UX
-      window.location.href = `/success?url=${encodeURIComponent(result.url)}&title=${encodeURIComponent(title)}`
+      if (mode === 'discovery') {
+        window.location.href = `/discovery-success?url=${encodeURIComponent(result.url)}&title=${encodeURIComponent(title)}&stats=${encodeURIComponent(JSON.stringify(result.stats))}`
+      } else {
+        window.location.href = `/success?url=${encodeURIComponent(result.url)}&title=${encodeURIComponent(title)}`
+      }
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten')
@@ -101,6 +107,54 @@ export default function UploadForm() {
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           required
         />
+      </div>
+
+      {/* Mode Selection */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-3">
+          Welchen Modus möchtest du verwenden?
+        </label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <button
+            type="button"
+            onClick={() => setMode('quiz')}
+            className={`p-4 rounded-xl border-2 transition-all text-left ${
+              mode === 'quiz'
+                ? 'border-blue-500 bg-blue-50'
+                : 'border-gray-200 bg-white hover:border-gray-300'
+            }`}
+          >
+            <div className="flex items-start space-x-3">
+              <span className="text-2xl">🧠</span>
+              <div>
+                <h3 className="font-semibold text-gray-900">Klassisches Quiz</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Traditionelles Quiz mit Fragen und sofortiger Auswertung
+                </p>
+              </div>
+            </div>
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => setMode('discovery')}
+            className={`p-4 rounded-xl border-2 transition-all text-left ${
+              mode === 'discovery'
+                ? 'border-purple-500 bg-purple-50'
+                : 'border-gray-200 bg-white hover:border-gray-300'
+            }`}
+          >
+            <div className="flex items-start space-x-3">
+              <span className="text-2xl">🗺️</span>
+              <div>
+                <h3 className="font-semibold text-gray-900">Discovery Modus</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Spielerische Lernreise mit verschiedenen Stationen und Aktivitäten
+                </p>
+              </div>
+            </div>
+          </button>
+        </div>
       </div>
 
       {/* Input Method Selection */}
@@ -206,7 +260,7 @@ export default function UploadForm() {
             <span>Generiere Quiz...</span>
           </div>
         ) : (
-          '🚀 Quiz generieren'
+          mode === 'discovery' ? '🗺️ Lernreise erstellen' : '🚀 Quiz generieren'
         )}
       </button>
     </form>
