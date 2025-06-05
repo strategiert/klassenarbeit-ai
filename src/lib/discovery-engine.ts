@@ -48,40 +48,23 @@ export interface LearnerProfile {
 export async function extractLearningObjectives(content: string, title: string): Promise<LearningObjective[]> {
   console.log('🎯 Extracting learning objectives for:', title)
   
-  try {
-    // Use the same robust AI system as the quiz generation
-    const { generateQuizWithFallback } = await import('./ai-providers')
-    
-    // Create a special prompt for learning objectives
-    const objectivePrompt = `Analysiere diese Klassenarbeit und extrahiere NUR die zugrundeliegenden Lernziele:
-
-TITEL: ${title}
-INHALT: ${content}
-
-Extrahiere 3-6 Hauptlernziele in dieser JSON-Struktur:
-{
-  "objectives": [
-    {
-      "id": "obj_1", 
-      "title": "Grundlagen verstehen",
-      "description": "Beschreibung des Lernziels",
-      "difficulty": "beginner",
-      "prerequisites": [],
-      "category": "Hauptkategorie", 
-      "estimatedTime": 15
-    }
-  ]
-}`
-
-    // Try to use our existing AI fallback system
-    const tempQuizData = await generateQuizWithFallback(objectivePrompt, 'Learning Objectives')
-    
-    // Extract objectives from the quiz data or create fallback
-    const fallbackObjectives = [
+  // PURE LOGIC-BASED - NO AI CALLS!
+  // Analyze content patterns to determine subject and create appropriate objectives
+  
+  const lowerContent = content.toLowerCase()
+  const lowerTitle = title.toLowerCase()
+  
+  let subject = 'Allgemein'
+  let objectives: LearningObjective[] = []
+  
+  // Detect subject based on keywords
+  if (lowerContent.includes('funktion') || lowerContent.includes('gleichung') || lowerContent.includes('x²') || lowerTitle.includes('mathe')) {
+    subject = 'Mathematik'
+    objectives = [
       {
         id: 'obj_1',
-        title: 'Grundlagen verstehen',
-        description: `Die grundlegenden Konzepte von "${title}" beherrschen`,
+        title: 'Grundbegriffe verstehen',
+        description: `Die wichtigsten Begriffe und Definitionen zu "${title}" verstehen`,
         difficulty: 'beginner' as const,
         prerequisites: [],
         category: 'Grundlagen',
@@ -89,51 +72,120 @@ Extrahiere 3-6 Hauptlernziele in dieser JSON-Struktur:
       },
       {
         id: 'obj_2',
-        title: 'Anwendung üben', 
-        description: `Das Gelernte zu "${title}" praktisch anwenden`,
+        title: 'Rechenmethoden anwenden',
+        description: `Verschiedene Rechenwege und Methoden sicher anwenden können`,
         difficulty: 'intermediate' as const,
         prerequisites: ['obj_1'],
         category: 'Anwendung',
-        estimatedTime: 20
+        estimatedTime: 25
       },
       {
         id: 'obj_3',
-        title: 'Vertiefung und Transfer',
-        description: `"${title}" in verschiedenen Kontexten verstehen und anwenden`,
-        difficulty: 'advanced' as const, 
+        title: 'Probleme lösen',
+        description: `Komplexere Aufgaben systematisch lösen und Ergebnisse interpretieren`,
+        difficulty: 'advanced' as const,
+        prerequisites: ['obj_2'],
+        category: 'Problemlösung',
+        estimatedTime: 30
+      }
+    ]
+  } else if (lowerContent.includes('geschichte') || lowerContent.includes('jahr') || lowerContent.includes('krieg') || lowerTitle.includes('geschichte')) {
+    subject = 'Geschichte'
+    objectives = [
+      {
+        id: 'obj_1',
+        title: 'Historische Fakten kennen',
+        description: `Wichtige Ereignisse, Daten und Personen zu "${title}" kennen`,
+        difficulty: 'beginner' as const,
+        prerequisites: [],
+        category: 'Faktenwissen',
+        estimatedTime: 20
+      },
+      {
+        id: 'obj_2',
+        title: 'Zusammenhänge verstehen',
+        description: `Ursachen und Folgen historischer Ereignisse verstehen`,
+        difficulty: 'intermediate' as const,
+        prerequisites: ['obj_1'],
+        category: 'Analyse',
+        estimatedTime: 25
+      },
+      {
+        id: 'obj_3',
+        title: 'Historisch denken',
+        description: `Geschichtliche Prozesse bewerten und eigene Schlüsse ziehen`,
+        difficulty: 'advanced' as const,
+        prerequisites: ['obj_2'],
+        category: 'Bewertung',
+        estimatedTime: 25
+      }
+    ]
+  } else if (lowerContent.includes('sprache') || lowerContent.includes('grammatik') || lowerContent.includes('text') || lowerTitle.includes('deutsch')) {
+    subject = 'Sprache'
+    objectives = [
+      {
+        id: 'obj_1',
+        title: 'Sprachstrukturen erkennen',
+        description: `Die wichtigsten sprachlichen Strukturen und Regeln verstehen`,
+        difficulty: 'beginner' as const,
+        prerequisites: [],
+        category: 'Grammatik',
+        estimatedTime: 18
+      },
+      {
+        id: 'obj_2',
+        title: 'Texte analysieren',
+        description: `Texte verstehen, interpretieren und analysieren können`,
+        difficulty: 'intermediate' as const,
+        prerequisites: ['obj_1'],
+        category: 'Textarbeit',
+        estimatedTime: 22
+      },
+      {
+        id: 'obj_3',
+        title: 'Sprache anwenden',
+        description: `Eigene Texte verfassen und sprachlich korrekt ausdrücken`,
+        difficulty: 'advanced' as const,
+        prerequisites: ['obj_2'],
+        category: 'Ausdruck',
+        estimatedTime: 28
+      }
+    ]
+  } else {
+    // Generic objectives for any subject
+    objectives = [
+      {
+        id: 'obj_1',
+        title: 'Grundlagen verstehen',
+        description: `Die wichtigsten Grundlagen zu "${title}" verstehen und erklären können`,
+        difficulty: 'beginner' as const,
+        prerequisites: [],
+        category: 'Grundlagen',
+        estimatedTime: 20
+      },
+      {
+        id: 'obj_2',
+        title: 'Wissen anwenden',
+        description: `Das Gelernte in verschiedenen Situationen richtig anwenden`,
+        difficulty: 'intermediate' as const,
+        prerequisites: ['obj_1'],
+        category: 'Anwendung',
+        estimatedTime: 25
+      },
+      {
+        id: 'obj_3',
+        title: 'Verknüpfen und bewerten',
+        description: `Verbindungen herstellen und selbstständig bewerten können`,
+        difficulty: 'advanced' as const,
         prerequisites: ['obj_2'],
         category: 'Transfer',
         estimatedTime: 25
       }
     ]
-    
-    return fallbackObjectives
-
-  } catch (error) {
-    console.error('❌ Error extracting learning objectives:', error)
-    
-    // Fallback objectives
-    return [
-      {
-        id: 'obj_1',
-        title: 'Grundlagen verstehen',
-        description: 'Die grundlegenden Konzepte des Themas beherrschen',
-        difficulty: 'beginner' as const,
-        prerequisites: [],
-        category: 'Grundlagen',
-        estimatedTime: 15
-      },
-      {
-        id: 'obj_2', 
-        title: 'Anwendung üben',
-        description: 'Das Gelernte in praktischen Aufgaben anwenden',
-        difficulty: 'intermediate' as const,
-        prerequisites: ['obj_1'],
-        category: 'Anwendung',
-        estimatedTime: 20
-      }
-    ]
   }
+  
+  console.log(`✅ Generated ${objectives.length} objectives for ${subject}`)
+  return objectives
 }
 
 // Generiert adaptive Lernstationen basierend auf Lernzielen
