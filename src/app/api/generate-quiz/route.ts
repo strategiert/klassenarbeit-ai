@@ -11,6 +11,7 @@ interface QuizQuestion {
   topic: string
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface QuizData {
   title: string
   description: string
