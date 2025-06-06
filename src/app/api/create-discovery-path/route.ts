@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
 
     let data
     let error
+    let finalSubdomain = subdomain
     
     if (klassenarbeitId && subdomain) {
       // Update existing database entry
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
       
       data = insertResult.data
       error = insertResult.error
-      subdomain = newSubdomain
+      finalSubdomain = newSubdomain
     }
 
     if (error) {
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest) {
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://klassenarbeit-ai-ua7d.vercel.app'
-    const discoveryUrl = `${appUrl}/discover/${subdomain}`
+    const discoveryUrl = `${appUrl}/discover/${finalSubdomain}`
     
     return NextResponse.json({
       success: true,
