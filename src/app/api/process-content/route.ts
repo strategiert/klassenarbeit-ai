@@ -88,15 +88,23 @@ Antworte NUR mit JSON, keine anderen Texte.`
     })
     console.log('🎉 OpenAI API call completed successfully!')
 
-    const responseContent = response.choices[0].message.content
+    let responseContent = response.choices[0].message.content
     
     console.log('✅ GPT-4o-mini research completed')
     console.log('📊 Response length:', responseContent?.length || 0)
     console.log('🔍 Response preview:', responseContent?.substring(0, 200) + '...')
     
+    // Clean up response - remove markdown code blocks
+    if (responseContent?.includes('```json')) {
+      responseContent = responseContent.replace(/```json\s*/g, '').replace(/\s*```/g, '').trim()
+      console.log('🧹 Cleaned response from markdown blocks')
+      console.log('🔍 Cleaned preview:', responseContent?.substring(0, 200) + '...')
+    }
+    
     let researchJson: ResearchResult
     try {
       researchJson = JSON.parse(responseContent || '{}')
+      console.log('✅ JSON parsing successful')
     } catch (parseError) {
       console.error('JSON parse error:', parseError)
       console.error('Raw response that failed to parse:', responseContent)

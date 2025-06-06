@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
         })
         .eq('id', klassenarbeitId)
         .select()
-        .single()
+        .maybeSingle() // Use maybeSingle instead of single to avoid error when no rows
       
       // If update by ID fails, try by subdomain as fallback
       if (updateResult.error) {
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
           })
           .eq('subdomain', subdomain)
           .select()
-          .single()
+          .maybeSingle() // Use maybeSingle instead of single
           
         if (updateResult.error) {
           console.log('❌ Subdomain fallback also failed:', updateResult.error)
@@ -172,6 +172,14 @@ export async function POST(request: NextRequest) {
       
       data = updateResult.data
       error = updateResult.error
+      
+      // Additional debug info
+      console.log('📊 Update result:', {
+        hasData: !!updateResult.data,
+        hasError: !!updateResult.error,
+        errorCode: updateResult.error?.code,
+        errorMessage: updateResult.error?.message
+      })
     } else {
       // Create new database entry (fallback for old workflow)
       console.log('➕ Creating new klassenarbeit for discovery path...')
@@ -201,8 +209,14 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('❌ Supabase error:', error)
+      console.error('❌ Full error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      })
       return NextResponse.json(
-        { error: 'Fehler beim Speichern der Lernreise' },
+        { error: 'Fehler beim Speichern der Lernreise', details: error.message },
         { status: 500 }
       )
     }
