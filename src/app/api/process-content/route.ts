@@ -155,7 +155,6 @@ Antworte AUSSCHLIESSLICH mit diesem JSON-Format:
       ],
       additional_topics: ['Verwandte Themen', 'Weiterführende Inhalte']
     }
-    } // End of OpenAI fallback catch
   }
 }
 
