@@ -132,13 +132,14 @@ export async function POST(request: NextRequest) {
         .from('klassenarbeiten')
         .update({
           quiz_data: {
+            // ✅ ADD discovery path data directly
+            ...discoveryPath,
+            // ✅ PRESERVE existing research_data (after spreading to avoid override)
+            ...(existing?.quiz_data?.research_data ? { research_data: existing.quiz_data.research_data } : {}),
+            // ✅ Set metadata
             type: 'discovery_path',
             status: 'completed',
-            completed_at: new Date().toISOString(),
-            // ✅ PRESERVE existing research_data
-            ...(existing?.quiz_data?.research_data ? { research_data: existing.quiz_data.research_data } : {}),
-            // ✅ ADD discovery path data directly (not nested)
-            ...discoveryPath
+            completed_at: new Date().toISOString()
           }
         })
         .eq('id', klassenarbeitId)

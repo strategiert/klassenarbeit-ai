@@ -639,153 +639,653 @@ function StationContent({ station, onComplete, onBack, isCompleted }: StationCon
 
 // Individual station components
 function ExplanationStation({ content, onProgress }: { content: any; onProgress: (progress: number) => void }) {
+  const [currentSection, setCurrentSection] = useState(0)
+  const [timeSpent, setTimeSpent] = useState(0)
+  const [isReadingComplete, setIsReadingComplete] = useState(false)
+
+  const sections = [
+    { title: 'Konzept verstehen', content: content.text || 'Hier steht die Erklärung des Konzepts...', icon: '📚' },
+    ...(content.examples ? [{ title: 'Beispiele erkunden', content: content.examples, icon: '💡' }] : []),
+    ...(content.visualAids ? [{ title: 'Visualisierung', content: content.visualAids, icon: '🎨' }] : [])
+  ]
+
+  // Track reading time
   useEffect(() => {
-    const timer = setTimeout(() => onProgress(100), 3000) // Auto-complete after reading time
-    return () => clearTimeout(timer)
-  }, [onProgress])
+    const timer = setInterval(() => {
+      setTimeSpent(prev => prev + 1)
+      const progress = Math.min((timeSpent / 30) * 100, 100) // 30 seconds for full progress
+      onProgress(progress)
+      
+      if (timeSpent >= 20 && !isReadingComplete) {
+        setIsReadingComplete(true)
+      }
+    }, 1000)
+    
+    return () => clearInterval(timer)
+  }, [timeSpent, onProgress, isReadingComplete])
 
   return (
-    <div className="prose max-w-none">
-      <div className="bg-blue-50 border-l-4 border-blue-500 p-6 mb-6">
-        <p className="text-blue-800 leading-relaxed">
-          {content.text || 'Hier steht die Erklärung des Konzepts...'}
-        </p>
+    <div className="space-y-6">
+      {/* Reading Progress Header */}
+      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-2xl">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold flex items-center">
+            📖 Interaktives Lernen
+          </h3>
+          <div className="text-sm bg-white/20 px-3 py-1 rounded-full">
+            {timeSpent}s gelesen
+          </div>
+        </div>
+        
+        {/* Section Navigation */}
+        <div className="flex space-x-2">
+          {sections.map((section, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSection(index)}
+              className={`flex-1 p-3 rounded-xl transition-all ${
+                currentSection === index 
+                  ? 'bg-white text-blue-600 shadow-lg' 
+                  : 'bg-white/20 hover:bg-white/30'
+              }`}
+            >
+              <div className="text-lg mb-1">{section.icon}</div>
+              <div className="text-xs font-medium">{section.title}</div>
+            </button>
+          ))}
+        </div>
       </div>
-      
-      {content.examples && (
-        <div className="bg-green-50 border-l-4 border-green-500 p-6 mb-6">
-          <h4 className="text-green-800 font-semibold mb-3">Beispiele:</h4>
-          <ul className="text-green-700 space-y-2">
-            {content.examples.map((example: string, index: number) => (
-              <li key={index} className="flex items-start">
-                <span className="text-green-500 mr-2">•</span>
-                {example}
-              </li>
-            ))}
-          </ul>
+
+      {/* Content Section */}
+      <div className="bg-white rounded-2xl shadow-xl p-8 min-h-[300px]">
+        <div className="text-center mb-6">
+          <div className="text-4xl mb-2">{sections[currentSection].icon}</div>
+          <h4 className="text-xl font-bold text-gray-900 mb-2">{sections[currentSection].title}</h4>
         </div>
-      )}
-      
-      {content.visualAids && (
-        <div className="bg-purple-50 border-l-4 border-purple-500 p-6">
-          <h4 className="text-purple-800 font-semibold mb-3">Visuelles Hilfsmittel:</h4>
-          <p className="text-purple-700">{content.visualAids}</p>
-        </div>
-      )}
+
+        {currentSection === 0 && (
+          <div className="space-y-4">
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-xl">
+              <p className="text-blue-800 leading-relaxed text-lg">
+                {sections[currentSection].content}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {currentSection === 1 && content.examples && (
+          <div className="space-y-4">
+            <div className="grid gap-4">
+              {content.examples.map((example: string, index: number) => (
+                <div 
+                  key={index}
+                  className="bg-green-50 border border-green-200 p-4 rounded-xl hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => {
+                    // Could add interactive example exploration here
+                  }}
+                >
+                  <div className="flex items-start space-x-3">
+                    <span className="text-green-500 text-xl">💡</span>
+                    <p className="text-green-800 font-medium">{example}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {currentSection === 2 && content.visualAids && (
+          <div className="space-y-4">
+            <div className="bg-purple-50 border border-purple-200 p-6 rounded-xl">
+              <div className="text-center mb-4">
+                <span className="text-4xl">🎨</span>
+              </div>
+              <p className="text-purple-800 text-center leading-relaxed">
+                {sections[currentSection].content}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Reading Completion Reward */}
+        {isReadingComplete && (
+          <div className="mt-6 bg-gradient-to-r from-green-400 to-emerald-500 text-white p-4 rounded-xl text-center animate-pulse">
+            <div className="flex items-center justify-center space-x-2">
+              <span className="text-2xl">🏆</span>
+              <div>
+                <p className="font-bold">Aufmerksam gelesen!</p>
+                <p className="text-sm">+20 XP für gründliches Studium</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
 
 function QuizStation({ content, onProgress }: { content: any; onProgress: (progress: number) => void }) {
   const [answers, setAnswers] = useState<Record<number, number>>({})
+  const [currentQuestion, setCurrentQuestion] = useState(0)
+  const [score, setScore] = useState(0)
+  const [streak, setStreak] = useState(0)
+  const [timeLeft, setTimeLeft] = useState(30)
+  const [showResults, setShowResults] = useState(false)
+  const [questionStartTime, setQuestionStartTime] = useState(Date.now())
+  
   const questions = content.questions || []
 
-  const handleAnswer = (questionIndex: number, answerIndex: number) => {
+  // Timer for each question
+  useEffect(() => {
+    if (currentQuestion < questions.length && !showResults) {
+      const timer = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            // Auto-advance to next question
+            if (currentQuestion < questions.length - 1) {
+              setCurrentQuestion(prev => prev + 1)
+              setQuestionStartTime(Date.now())
+              return 30
+            } else {
+              setShowResults(true)
+              return 0
+            }
+          }
+          return prev - 1
+        })
+      }, 1000)
+      
+      return () => clearInterval(timer)
+    }
+  }, [currentQuestion, questions.length, showResults])
+
+  const handleAnswer = (answerIndex: number) => {
+    const question = questions[currentQuestion]
+    const isCorrect = answerIndex === question.correct
+    const responseTime = Date.now() - questionStartTime
+    
+    // Update answers
     setAnswers(prev => ({
       ...prev,
-      [questionIndex]: answerIndex
+      [currentQuestion]: answerIndex
     }))
-    
-    const progress = ((Object.keys(answers).length + 1) / questions.length) * 100
+
+    // Calculate scoring with time bonus
+    if (isCorrect) {
+      const timeBonus = Math.max(0, Math.floor((30 - responseTime / 1000) / 5)) * 10
+      const basePoints = 100
+      const streakBonus = streak * 25
+      const totalPoints = basePoints + timeBonus + streakBonus
+      
+      setScore(prev => prev + totalPoints)
+      setStreak(prev => prev + 1)
+    } else {
+      setStreak(0)
+    }
+
+    // Progress
+    const progress = ((currentQuestion + 1) / questions.length) * 100
     onProgress(Math.min(progress, 100))
+
+    // Advance to next question after delay
+    setTimeout(() => {
+      if (currentQuestion < questions.length - 1) {
+        setCurrentQuestion(prev => prev + 1)
+        setQuestionStartTime(Date.now())
+        setTimeLeft(30)
+      } else {
+        setShowResults(true)
+      }
+    }, 2000)
   }
+
+  if (showResults) {
+    const totalQuestions = questions.length
+    const correctAnswers = Object.entries(answers).filter(([qIndex, answer]) => 
+      answer === questions[parseInt(qIndex)].correct
+    ).length
+    const percentage = (correctAnswers / totalQuestions) * 100
+
+    return (
+      <div className="space-y-6">
+        {/* Results Header */}
+        <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-8 rounded-2xl text-center">
+          <div className="text-6xl mb-4">
+            {percentage >= 80 ? '🏆' : percentage >= 60 ? '🥈' : '🥉'}
+          </div>
+          <h3 className="text-2xl font-bold mb-2">Quiz abgeschlossen!</h3>
+          <p className="text-lg">{correctAnswers} von {totalQuestions} richtig</p>
+          <div className="text-3xl font-bold mt-2">{score} Punkte</div>
+        </div>
+
+        {/* Performance Stats */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-blue-50 p-4 rounded-xl text-center">
+            <div className="text-2xl font-bold text-blue-600">{percentage.toFixed(0)}%</div>
+            <div className="text-sm text-blue-800">Genauigkeit</div>
+          </div>
+          <div className="bg-green-50 p-4 rounded-xl text-center">
+            <div className="text-2xl font-bold text-green-600">{score}</div>
+            <div className="text-sm text-green-800">Punkte</div>
+          </div>
+          <div className="bg-purple-50 p-4 rounded-xl text-center">
+            <div className="text-2xl font-bold text-purple-600">{Math.max(...Object.values(answers).map((_, i) => answers[i] === questions[i]?.correct ? 1 : 0).reduce((acc, curr, i) => {
+              if (curr) acc.push(i === 0 ? 1 : acc[acc.length - 1] + 1)
+              else acc.push(0)
+              return acc
+            }, [] as number[]))}</div>
+            <div className="text-sm text-purple-800">Beste Serie</div>
+          </div>
+        </div>
+
+        {/* Achievement Unlock */}
+        {percentage >= 80 && (
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-xl">
+            <div className="flex items-center space-x-3">
+              <span className="text-2xl">🏅</span>
+              <div>
+                <p className="font-bold text-yellow-800">Erfolg freigeschaltet!</p>
+                <p className="text-yellow-700 text-sm">Quiz-Master - 80%+ Genauigkeit erreicht!</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  const question = questions[currentQuestion]
+  const isAnswered = answers[currentQuestion] !== undefined
 
   return (
     <div className="space-y-6">
-      {questions.map((question: any, qIndex: number) => (
-        <div key={qIndex} className="bg-gray-50 rounded-xl p-6">
-          <h4 className="font-semibold text-gray-900 mb-4">
-            {qIndex + 1}. {question.question}
-          </h4>
-          
-          <div className="space-y-3">
-            {question.options?.map((option: string, oIndex: number) => (
-              <button
-                key={oIndex}
-                onClick={() => handleAnswer(qIndex, oIndex)}
-                className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                  answers[qIndex] === oIndex
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-300 bg-white hover:border-gray-400'
-                }`}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-          
-          {answers[qIndex] !== undefined && (
-            <div className={`mt-4 p-3 rounded-lg ${
-              answers[qIndex] === question.correct
-                ? 'bg-green-50 text-green-800'
-                : 'bg-red-50 text-red-800'
-            }`}>
-              {answers[qIndex] === question.correct ? '✓ Richtig!' : '✗ Leider falsch.'}
+      {/* Quiz Header */}
+      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-2xl">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold">🧠 Quiz Challenge</h3>
+          <div className="flex items-center space-x-4">
+            <div className="bg-white/20 px-3 py-1 rounded-full text-sm">
+              Frage {currentQuestion + 1}/{questions.length}
             </div>
-          )}
+            <div className="bg-white/20 px-3 py-1 rounded-full text-sm">
+              {timeLeft}s
+            </div>
+          </div>
         </div>
-      ))}
+        
+        {/* Progress Bar */}
+        <div className="w-full bg-white/20 rounded-full h-2 mb-4">
+          <div 
+            className="bg-white h-2 rounded-full transition-all duration-300"
+            style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
+          />
+        </div>
+
+        {/* Score & Streak */}
+        <div className="flex justify-between text-sm">
+          <span>Score: {score}</span>
+          {streak > 0 && <span>🔥 Serie: {streak}</span>}
+        </div>
+      </div>
+
+      {/* Question Card */}
+      <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="text-center mb-6">
+          <div className="text-4xl mb-4">❓</div>
+          <h4 className="text-xl font-bold text-gray-900 mb-4">
+            {question?.question}
+          </h4>
+        </div>
+
+        <div className="space-y-3">
+          {question?.options?.map((option: string, oIndex: number) => (
+            <button
+              key={oIndex}
+              onClick={() => !isAnswered && handleAnswer(oIndex)}
+              disabled={isAnswered}
+              className={`w-full text-left p-4 rounded-xl border-2 transition-all transform hover:scale-105 ${
+                isAnswered
+                  ? oIndex === question.correct
+                    ? 'border-green-500 bg-green-50 text-green-800'
+                    : answers[currentQuestion] === oIndex
+                    ? 'border-red-500 bg-red-50 text-red-800'
+                    : 'border-gray-200 bg-gray-50 text-gray-500'
+                  : 'border-gray-300 bg-white hover:border-indigo-400 hover:bg-indigo-50'
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                  isAnswered
+                    ? oIndex === question.correct
+                      ? 'bg-green-500 text-white'
+                      : answers[currentQuestion] === oIndex
+                      ? 'bg-red-500 text-white'
+                      : 'bg-gray-300 text-gray-600'
+                    : 'bg-indigo-100 text-indigo-600'
+                }`}>
+                  {String.fromCharCode(65 + oIndex)}
+                </div>
+                <span className="font-medium">{option}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Feedback */}
+        {isAnswered && (
+          <div className={`mt-6 p-4 rounded-xl ${
+            answers[currentQuestion] === question.correct
+              ? 'bg-green-50 border border-green-200'
+              : 'bg-red-50 border border-red-200'
+          }`}>
+            <div className="flex items-start space-x-3">
+              <span className="text-2xl">
+                {answers[currentQuestion] === question.correct ? '✅' : '❌'}
+              </span>
+              <div>
+                <p className={`font-bold mb-1 ${
+                  answers[currentQuestion] === question.correct ? 'text-green-800' : 'text-red-800'
+                }`}>
+                  {answers[currentQuestion] === question.correct ? 'Richtig!' : 'Leider falsch!'}
+                </p>
+                <p className={`text-sm ${
+                  answers[currentQuestion] === question.correct ? 'text-green-700' : 'text-red-700'
+                }`}>
+                  {question.explanation}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
 
 function SimulationStation({ content, onProgress }: { content: any; onProgress: (progress: number) => void }) {
-  useEffect(() => {
-    onProgress(50) // Start with some progress
-  }, [onProgress])
+  const [draggedItem, setDraggedItem] = useState<string | null>(null)
+  const [sortedItems, setSortedItems] = useState<string[]>([])
+  const [isCompleted, setIsCompleted] = useState(false)
+  const [attempts, setAttempts] = useState(0)
+  
+  // Use content from interactive elements or default sorting
+  const items = content.items || content.content?.items || ['Element A', 'Element B', 'Element C']
+  const instructions = content.instructions || content.content?.instructions || 'Sortiere die Elemente in die richtige Reihenfolge'
+
+  const handleDragStart = (item: string) => {
+    setDraggedItem(item)
+  }
+
+  const handleDrop = (targetIndex: number) => {
+    if (!draggedItem) return
+    
+    const newSortedItems = [...sortedItems]
+    const draggedIndex = newSortedItems.indexOf(draggedItem)
+    
+    if (draggedIndex > -1) {
+      newSortedItems.splice(draggedIndex, 1)
+    }
+    
+    newSortedItems.splice(targetIndex, 0, draggedItem)
+    setSortedItems(newSortedItems)
+    setDraggedItem(null)
+  }
+
+  const handleCheck = () => {
+    setAttempts(prev => prev + 1)
+    // For demo, consider any arrangement as correct after 2 attempts
+    if (attempts >= 1 || sortedItems.length === items.length) {
+      setIsCompleted(true)
+      onProgress(100)
+    }
+  }
+
+  const resetSorting = () => {
+    setSortedItems([])
+    setAttempts(0)
+    setIsCompleted(false)
+    onProgress(25)
+  }
 
   return (
-    <div className="bg-green-50 border-2 border-dashed border-green-300 rounded-xl p-8 text-center">
-      <div className="text-6xl mb-4">🔬</div>
-      <h3 className="text-xl font-semibold text-green-800 mb-3">Interaktive Simulation</h3>
-      <p className="text-green-700 mb-6">
-        Hier würde eine interaktive Simulation stehen, die das Konzept praktisch erfahrbar macht.
-      </p>
-      <button
-        onClick={() => onProgress(100)}
-        className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors"
-      >
-        Simulation starten
-      </button>
+    <div className="space-y-6">
+      {/* Simulation Header */}
+      <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-2xl">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold">🔬 Interaktive Simulation</h3>
+          <div className="bg-white/20 px-3 py-1 rounded-full text-sm">
+            Versuche: {attempts}
+          </div>
+        </div>
+        <p className="text-green-100">{instructions}</p>
+      </div>
+
+      {!isCompleted ? (
+        <div className="space-y-6">
+          {/* Available Items */}
+          <div className="bg-white rounded-2xl shadow-xl p-6">
+            <h4 className="text-lg font-bold text-gray-900 mb-4">📦 Verfügbare Elemente</h4>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {items.filter(item => !sortedItems.includes(item)).map((item, index) => (
+                <div
+                  key={item}
+                  draggable
+                  onDragStart={() => handleDragStart(item)}
+                  className="bg-blue-100 border-2 border-blue-300 p-4 rounded-xl cursor-move hover:bg-blue-200 transition-colors text-center font-medium text-blue-800"
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Sorting Area */}
+          <div className="bg-white rounded-2xl shadow-xl p-6">
+            <h4 className="text-lg font-bold text-gray-900 mb-4">🎯 Sortierbereich</h4>
+            <div className="space-y-3">
+              {Array.from({ length: Math.max(items.length, 3) }, (_, index) => (
+                <div
+                  key={index}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => handleDrop(index)}
+                  className={`min-h-[60px] border-2 border-dashed rounded-xl flex items-center justify-center text-center transition-colors ${
+                    sortedItems[index] 
+                      ? 'border-green-400 bg-green-50' 
+                      : 'border-gray-300 bg-gray-50 hover:border-gray-400'
+                  }`}
+                >
+                  {sortedItems[index] ? (
+                    <div className="bg-green-100 border border-green-300 px-4 py-2 rounded-lg font-medium text-green-800">
+                      {index + 1}. {sortedItems[index]}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400">Element hier ablegen</span>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={handleCheck}
+                disabled={sortedItems.length === 0}
+                className="flex-1 bg-green-500 text-white py-3 rounded-xl font-medium hover:bg-green-600 transition-colors disabled:bg-gray-300"
+              >
+                ✓ Überprüfen
+              </button>
+              <button
+                onClick={resetSorting}
+                className="px-6 bg-gray-200 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-300 transition-colors"
+              >
+                🔄 Zurücksetzen
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+          <div className="text-6xl mb-4">🎉</div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-3">Simulation abgeschlossen!</h3>
+          <p className="text-gray-600 mb-6">
+            Großartig! Du hast die Elemente erfolgreich sortiert und das Konzept praktisch erfahren.
+          </p>
+          
+          {/* Results Summary */}
+          <div className="bg-green-50 border border-green-200 p-4 rounded-xl">
+            <h4 className="font-bold text-green-800 mb-2">Deine Lösung:</h4>
+            <div className="space-y-2">
+              {sortedItems.map((item, index) => (
+                <div key={index} className="text-green-700">
+                  {index + 1}. {item}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-xl">
+            <div className="flex items-center space-x-3">
+              <span className="text-2xl">🏆</span>
+              <div>
+                <p className="font-bold text-blue-800">+30 XP für praktische Anwendung!</p>
+                <p className="text-blue-700 text-sm">Hands-on Lernen gemeistert</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 function ReflectionStation({ content, onProgress }: { content: any; onProgress: (progress: number) => void }) {
   const [reflection, setReflection] = useState('')
+  const [currentPrompt, setCurrentPrompt] = useState(0)
+  const [insights, setInsights] = useState<string[]>([])
+  const [isComplete, setIsComplete] = useState(false)
+
+  const prompts = content.questions || [
+    'Was hast du Neues gelernt?',
+    'Wie kannst du das Wissen anwenden?', 
+    'Welche Verbindungen siehst du zu anderen Themen?'
+  ]
 
   const handleReflectionChange = (value: string) => {
     setReflection(value)
-    const progress = Math.min((value.length / 100) * 100, 100) // 100 characters for full progress
-    onProgress(progress)
+    const progress = Math.min((value.length / 50) * 100, 100)
+    onProgress(Math.min((insights.length * 33) + (progress / 3), 100))
+  }
+
+  const saveInsight = () => {
+    if (reflection.trim()) {
+      setInsights(prev => [...prev, reflection.trim()])
+      setReflection('')
+      
+      if (currentPrompt < prompts.length - 1) {
+        setCurrentPrompt(prev => prev + 1)
+      } else {
+        setIsComplete(true)
+        onProgress(100)
+      }
+    }
   }
 
   return (
     <div className="space-y-6">
-      <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6">
-        <h4 className="text-yellow-800 font-semibold mb-3">Reflexionsfragen:</h4>
-        <ul className="text-yellow-700 space-y-2">
-          <li>• Was hast du Neues gelernt?</li>
-          <li>• Wie kannst du das Wissen anwenden?</li>
-          <li>• Welche Verbindungen siehst du zu anderen Themen?</li>
-        </ul>
+      {/* Reflection Header */}
+      <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white p-6 rounded-2xl">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold">💭 Reflexions-Labor</h3>
+          <div className="bg-white/20 px-3 py-1 rounded-full text-sm">
+            {insights.length}/{prompts.length} Erkenntnisse
+          </div>
+        </div>
+        <p className="text-yellow-100">Zeit zum Nachdenken und Verknüpfen!</p>
       </div>
-      
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Deine Gedanken:
-        </label>
-        <textarea
-          value={reflection}
-          onChange={(e) => handleReflectionChange(e.target.value)}
-          placeholder="Nimm dir Zeit zum Nachdenken und schreibe deine Gedanken auf..."
-          rows={6}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-        />
-        <p className="text-sm text-gray-500 mt-2">
-          {reflection.length}/100 Zeichen (empfohlen für vollständige Reflexion)
-        </p>
-      </div>
+
+      {!isComplete ? (
+        <div className="space-y-6">
+          {/* Current Question */}
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <div className="text-center mb-6">
+              <div className="text-4xl mb-4">🤔</div>
+              <h4 className="text-xl font-bold text-gray-900 mb-4">
+                {prompts[currentPrompt]}
+              </h4>
+            </div>
+
+            <div className="space-y-4">
+              <textarea
+                value={reflection}
+                onChange={(e) => handleReflectionChange(e.target.value)}
+                placeholder="Teile deine Gedanken und Erkenntnisse..."
+                rows={4}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-transparent resize-none text-lg"
+              />
+              
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-500">
+                  {reflection.length} Zeichen
+                </span>
+                <button
+                  onClick={saveInsight}
+                  disabled={reflection.trim().length < 10}
+                  className="bg-yellow-500 text-white px-6 py-2 rounded-xl font-medium hover:bg-yellow-600 transition-colors disabled:bg-gray-300"
+                >
+                  💡 Erkenntnis festhalten
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Previous Insights */}
+          {insights.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-xl p-6">
+              <h4 className="text-lg font-bold text-gray-900 mb-4">🌟 Deine Erkenntnisse</h4>
+              <div className="space-y-3">
+                {insights.map((insight, index) => (
+                  <div key={index} className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-xl">
+                    <div className="flex items-start space-x-3">
+                      <span className="text-yellow-500 font-bold">{index + 1}.</span>
+                      <p className="text-yellow-800">{insight}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+          <div className="text-6xl mb-4">🧠</div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-3">Reflexion abgeschlossen!</h3>
+          <p className="text-gray-600 mb-6">
+            Fantastisch! Du hast alle Reflexionsfragen durchdacht und wertvolle Erkenntnisse gesammelt.
+          </p>
+
+          {/* Insights Summary */}
+          <div className="bg-yellow-50 border border-yellow-200 p-6 rounded-xl mb-6">
+            <h4 className="font-bold text-yellow-800 mb-4">Deine Lernreise-Erkenntnisse:</h4>
+            <div className="space-y-3 text-left">
+              {insights.map((insight, index) => (
+                <div key={index} className="flex items-start space-x-3">
+                  <span className="text-yellow-600 font-bold">{index + 1}.</span>
+                  <p className="text-yellow-800 text-sm">{insight}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-purple-50 border-l-4 border-purple-400 p-4 rounded-r-xl">
+            <div className="flex items-center space-x-3">
+              <span className="text-2xl">🎓</span>
+              <div>
+                <p className="font-bold text-purple-800">+25 XP für tiefe Reflexion!</p>
+                <p className="text-purple-700 text-sm">Metacognitive Fähigkeiten entwickelt</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
