@@ -60,6 +60,24 @@ export default function DiscoveryExplorer({ discoveryPath, pathId, content }: Di
   })
   const [stationProgress, setStationProgress] = useState<Record<string, number>>({})
   const [completedStations, setCompletedStations] = useState<Set<string>>(new Set())
+  const [selectedAvatar, setSelectedAvatar] = useState('🎓')
+  const [totalXP, setTotalXP] = useState(0)
+  const [currentLevel, setCurrentLevel] = useState(1)
+  const [achievements, setAchievements] = useState<string[]>([])
+  const [showAvatarSelection, setShowAvatarSelection] = useState(false)
+  const [showAchievement, setShowAchievement] = useState<string | null>(null)
+
+  // Avatar options
+  const avatarOptions = ['🎓', '🚀', '🦄', '🌟', '🔥', '⚡', '🎯', '🏆', '💎', '🌈']
+  
+  // Calculate level from XP (100 XP per level)
+  useEffect(() => {
+    const newLevel = Math.floor(totalXP / 100) + 1
+    if (newLevel > currentLevel) {
+      setCurrentLevel(newLevel)
+      setAchievements(prev => [...prev, `Level ${newLevel} erreicht!`])
+    }
+  }, [totalXP, currentLevel])
 
   // Initialize with first objective
   useEffect(() => {
@@ -94,8 +112,28 @@ export default function DiscoveryExplorer({ discoveryPath, pathId, content }: Di
     setCompletedStations(prev => new Set([...prev, stationId]))
     setStationProgress(prev => ({ ...prev, [stationId]: 100 }))
     
-    // Check if objective is now complete
+    // Award XP based on station type
     const station = discoveryPath.stations?.find(s => s.id === stationId)
+    const xpReward = station?.type === 'challenge' ? 50 : station?.type === 'quiz' ? 30 : 20
+    setTotalXP(prev => prev + xpReward)
+    
+    // Check for achievements with notifications
+    const newCompletedCount = completedStations.size + 1
+    let newAchievement = null
+    if (newCompletedCount === 1) {
+      newAchievement = '🎯 Erste Station abgeschlossen!'
+    } else if (newCompletedCount === 5) {
+      newAchievement = '🌟 5 Stationen gemeistert!'
+    } else if (newCompletedCount === 10) {
+      newAchievement = '🏆 Lern-Champion!'
+    }
+    
+    if (newAchievement) {
+      setAchievements(prev => [...prev, newAchievement!])
+      setShowAchievement(newAchievement)
+      setTimeout(() => setShowAchievement(null), 3000)
+    }
+    
     if (station) {
       const objectiveStations = getStationsForObjective(station.objective)
       const completedObjectiveStations = objectiveStations.filter(s => 
@@ -108,6 +146,8 @@ export default function DiscoveryExplorer({ discoveryPath, pathId, content }: Di
           ...prev,
           completedObjectives: [...prev.completedObjectives, station.objective]
         }))
+        setTotalXP(prev => prev + 100) // Bonus XP for completing objective
+        setAchievements(prev => [...prev, `🎉 "${discoveryPath.objectives?.find(obj => obj.id === station.objective)?.title}" abgeschlossen!`])
       }
     }
   }
@@ -141,10 +181,109 @@ export default function DiscoveryExplorer({ discoveryPath, pathId, content }: Di
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto space-y-6">
       
-      {/* Learning Map - Left Sidebar */}
-      <div className="lg:col-span-1">
+      {/* Player Profile Header */}
+      <div className="bg-gradient-to-r from-purple-500 to-blue-600 rounded-2xl p-6 text-white shadow-xl">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+          {/* Avatar Section */}
+          <div className="flex items-center space-x-4">
+            <div 
+              className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-2xl cursor-pointer hover:bg-white/30 transition-colors"
+              onClick={() => setShowAvatarSelection(!showAvatarSelection)}
+            >
+              {selectedAvatar}
+            </div>
+            <div>
+              <h3 className="font-bold text-lg">Lern-Explorer</h3>
+              <p className="text-purple-100 text-sm">Level {currentLevel}</p>
+            </div>
+          </div>
+
+          {/* XP and Level Progress */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>XP</span>
+              <span>{totalXP}/{currentLevel * 100}</span>
+            </div>
+            <div className="w-full bg-white/20 rounded-full h-2">
+              <div 
+                className="bg-yellow-400 h-2 rounded-full transition-all duration-500"
+                style={{ width: `${((totalXP % 100) / 100) * 100}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-4 text-center">
+            <div>
+              <div className="text-2xl font-bold">{completedStations.size}</div>
+              <div className="text-xs text-purple-100">Stationen</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold">{learnerProfile.completedObjectives.length}</div>
+              <div className="text-xs text-purple-100">Ziele</div>
+            </div>
+          </div>
+
+          {/* Achievements */}
+          <div className="flex flex-wrap gap-1">
+            {achievements.slice(-3).map((achievement, index) => (
+              <span 
+                key={index}
+                className="px-2 py-1 bg-yellow-400 text-yellow-900 rounded-full text-xs font-medium"
+                title={achievement}
+              >
+                🏆
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Avatar Selection */}
+        {showAvatarSelection && (
+          <div className="mt-4 p-4 bg-white/10 rounded-xl">
+            <p className="text-sm mb-3">Wähle deinen Avatar:</p>
+            <div className="flex space-x-2">
+              {avatarOptions.map((avatar) => (
+                <button
+                  key={avatar}
+                  onClick={() => {
+                    setSelectedAvatar(avatar)
+                    setShowAvatarSelection(false)
+                  }}
+                  className={`w-12 h-12 rounded-full flex items-center justify-center text-xl transition-colors ${
+                    selectedAvatar === avatar 
+                      ? 'bg-white text-purple-600' 
+                      : 'bg-white/20 hover:bg-white/30'
+                  }`}
+                >
+                  {avatar}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Achievement Notification */}
+      {showAchievement && (
+        <div className="fixed top-4 right-4 z-50 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-4 rounded-xl shadow-2xl transform animate-bounce">
+          <div className="flex items-center space-x-3">
+            <span className="text-2xl">🏆</span>
+            <div>
+              <p className="font-bold">Erfolg freigeschaltet!</p>
+              <p className="text-sm">{showAchievement}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Learning Interface */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        
+        {/* Learning Map - Left Sidebar */}
+        <div className="lg:col-span-1">
         <div className="bg-white rounded-2xl shadow-xl p-6 sticky top-24">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
             🗺️ {theme?.subjectSpecificTerms?.learningWorld || 'Lernlandkarte'}
@@ -253,6 +392,7 @@ export default function DiscoveryExplorer({ discoveryPath, pathId, content }: Di
             theme={theme}
           />
         )}
+        </div>
       </div>
     </div>
   )
