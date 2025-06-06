@@ -19,7 +19,7 @@ export async function GET(
     
     const { data: klassenarbeit, error } = await supabase
       .from('klassenarbeiten')
-      .select('id, title, created_at, research_status, quiz_generation_status, research_completed_at, quiz_completed_at, error_message, is_active, quiz_data')
+      .select('*')
       .eq('subdomain', subdomain)
       .single()
 
@@ -28,6 +28,44 @@ export async function GET(
         { error: 'Klassenarbeit nicht gefunden' },
         { status: 404 }
       )
+    }
+
+    // FALLBACK: Handle missing status columns gracefully
+    const hasStatusFields = klassenarbeit.research_status !== undefined && klassenarbeit.quiz_generation_status !== undefined
+    
+    if (!hasStatusFields) {
+      // If no status fields, check quiz_data to determine completion
+      const isCompleted = klassenarbeit.quiz_data && 
+        (klassenarbeit.quiz_data.questions?.length > 0 || klassenarbeit.quiz_data.stations?.length > 0)
+      
+      if (!isCompleted) {
+        return NextResponse.json(
+          { error: 'Quiz noch nicht bereit - wird noch verarbeitet' },
+          { status: 404 }
+        )
+      }
+      
+      // Return simplified status for entries without status fields
+      return NextResponse.json({
+        success: true,
+        id: klassenarbeit.id,
+        subdomain: subdomain,
+        title: klassenarbeit.title,
+        status: 'completed',
+        stages: [
+          { name: 'research', label: 'DeepSeek AI Forschung', status: 'completed', progress: 100 },
+          { name: 'generation', label: 'Quiz Generierung', status: 'completed', progress: 100 }
+        ],
+        progress: { current: 100, step: 'Fertig!', elapsed_time: { minutes: 0, seconds: 0, total_seconds: 0 }, estimated_remaining_minutes: 0 },
+        is_active: klassenarbeit.is_active,
+        ready_for_quiz: true,
+        redirect_url: `/quiz/${subdomain}`,
+        debug_info: {
+          fallback_mode: true,
+          has_quiz_data: !!klassenarbeit.quiz_data,
+          quiz_data_type: klassenarbeit.quiz_data?.type || 'unknown'
+        }
+      })
     }
 
     // Extract progress info from quiz_data

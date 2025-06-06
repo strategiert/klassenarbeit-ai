@@ -22,16 +22,34 @@ async function getQuiz(subdomain: string) {
       return { status: 'not_found', quiz: null }
     }
 
-    // STRICT CHECKING: Both research AND quiz generation must be completed
-    if (quiz.research_status !== 'completed' || quiz.quiz_generation_status !== 'completed') {
-      console.log(`Quiz not ready: research=${quiz.research_status}, generation=${quiz.quiz_generation_status}`)
-      return { 
-        status: 'not_ready', 
-        quiz: null,
-        research_status: quiz.research_status,
-        quiz_generation_status: quiz.quiz_generation_status,
-        title: quiz.title,
-        subdomain: quiz.subdomain
+    // FALLBACK CHECKING: Check if status fields exist, otherwise assume completed if quiz_data exists
+    const hasStatusFields = quiz.research_status !== undefined && quiz.quiz_generation_status !== undefined
+    
+    if (hasStatusFields) {
+      // If status fields exist, use strict checking
+      if (quiz.research_status !== 'completed' || quiz.quiz_generation_status !== 'completed') {
+        console.log(`Quiz not ready: research=${quiz.research_status}, generation=${quiz.quiz_generation_status}`)
+        return { 
+          status: 'not_ready', 
+          quiz: null,
+          research_status: quiz.research_status,
+          quiz_generation_status: quiz.quiz_generation_status,
+          title: quiz.title,
+          subdomain: quiz.subdomain
+        }
+      }
+    } else {
+      // Fallback: If no status fields, check if quiz_data exists and is complete
+      if (!quiz.quiz_data || !quiz.quiz_data.questions || quiz.quiz_data.questions.length === 0) {
+        console.log('Quiz not ready: no complete quiz_data found')
+        return { 
+          status: 'not_ready', 
+          quiz: null,
+          research_status: 'unknown',
+          quiz_generation_status: 'unknown',
+          title: quiz.title,
+          subdomain: quiz.subdomain
+        }
       }
     }
 
