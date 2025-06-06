@@ -25,10 +25,13 @@ export default async function DiscoveryPage({ params }: DiscoveryPageProps) {
   const { subdomain } = await params
   const discoveryData = await getDiscoveryPath(subdomain)
 
-  if (!discoveryData || discoveryData.quiz_data?.type !== 'discovery_path') {
+  if (!discoveryData) {
     notFound()
   }
 
+  console.log('🔍 Discovery Data:', discoveryData)
+  console.log('🔍 Quiz Data:', discoveryData.quiz_data)
+  
   const discoveryPath = discoveryData.quiz_data
   
   // Get theme for dynamic styling (with safe fallback)
