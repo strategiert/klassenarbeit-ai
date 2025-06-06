@@ -50,11 +50,10 @@ export async function POST(request: NextRequest) {
         .update({
           quiz_data: {
             type: 'discovery_path',
+            status: 'completed',
+            completed_at: new Date().toISOString(),
             ...discoveryPath
-          },
-          // Ensure status fields are set correctly
-          quiz_generation_status: 'completed',
-          quiz_completed_at: new Date().toISOString()
+          }
         })
         .eq('id', klassenarbeitId)
         .select()
@@ -76,13 +75,10 @@ export async function POST(request: NextRequest) {
           subdomain: newSubdomain,
           quiz_data: {
             type: 'discovery_path',
+            status: 'completed',
+            completed_at: new Date().toISOString(),
             ...discoveryPath
-          },
-          // Fix: Add missing status fields for research-first architecture
-          research_status: 'completed',
-          quiz_generation_status: 'completed',
-          research_completed_at: new Date().toISOString(),
-          quiz_completed_at: new Date().toISOString()
+          }
         })
         .select()
         .single()
