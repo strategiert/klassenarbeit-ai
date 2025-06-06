@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { DiscoveryPath, LearningObjective, LearningStation, LearnerProfile } from '@/lib/discovery-engine'
 import { getSubjectTheme, SubjectTheme } from '@/lib/subject-themes'
+import AIInteractiveStation from '@/components/AIInteractiveStation'
 
 interface DiscoveryExplorerProps {
   discoveryPath: DiscoveryPath
@@ -600,6 +601,10 @@ function StationContent({ station, onComplete, onBack, isCompleted }: StationCon
         
         {station.type === 'challenge' && (
           <ChallengeStation content={station.content} onProgress={setProgress} />
+        )}
+        
+        {station.type === 'ai_interactive' && (
+          <AIInteractiveStation content={station.content} onProgress={setProgress} />
         )}
       </div>
 

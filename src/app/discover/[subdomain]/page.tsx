@@ -60,6 +60,16 @@ async function getDiscoveryPath(subdomain: string) {
       return { status: 'not_ready', discovery: null }
     }
 
+    // Check if this is an AI-generated tool
+    if (discovery.quiz_data.type === 'ai_generated_tool') {
+      console.log('✅ AI-generated interactive tool detected')
+      console.log('🤖 Tool stats:', {
+        uniqueInteractions: discovery.quiz_data.aiTool?.interactiveElements?.length || 0,
+        subject: discovery.quiz_data.aiTool?.subject,
+        customComponents: discovery.quiz_data.aiTool?.customComponents?.length || 0
+      })
+    }
+
     // Increment view count only for fully ready discoveries
     await supabase
       .from('klassenarbeiten')

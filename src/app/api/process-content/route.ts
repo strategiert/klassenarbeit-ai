@@ -248,11 +248,12 @@ async function performAsyncResearch(klassenarbeitId: string, title: string, cont
     // Trigger content generation
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     
-    // Always create discovery path (no quiz mode)
+    // Create AI-generated interactive tool (new approach)
     const subdomainResult = await supabase.from('klassenarbeiten').select('subdomain').eq('id', klassenarbeitId).single()
     const subdomain = subdomainResult.data?.subdomain
     
-    const response = await fetch(`${appUrl}/api/create-discovery-path`, {
+    console.log('🤖 Starting AI interactive tool generation...')
+    const response = await fetch(`${appUrl}/api/generate-interactive-tool`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -265,10 +266,11 @@ async function performAsyncResearch(klassenarbeitId: string, title: string, cont
     })
     
     if (!response.ok) {
-      console.error('❌ Discovery path generation failed:', await response.text())
-      throw new Error('Discovery path generation failed')
+      console.error('❌ AI interactive tool generation failed:', await response.text())
+      throw new Error('AI interactive tool generation failed')
     } else {
-      console.log('✅ Discovery path generation successful!')
+      const result = await response.json()
+      console.log('✅ AI interactive tool generation successful!', result.stats)
     }
 
     console.log(`🎉 Complete workflow finished for ${klassenarbeitId}`)
