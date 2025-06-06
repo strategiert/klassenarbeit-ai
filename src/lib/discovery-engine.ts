@@ -343,7 +343,8 @@ export async function extractLearningObjectives(content: string, title: string):
 export async function generateLearningStations(
   objective: LearningObjective, 
   learnerProfile: LearnerProfile,
-  classContent: string
+  classContent: string,
+  researchData?: any
 ): Promise<LearningStation[]> {
   
   console.log('🛤️ Generating stations for objective:', objective.title)
@@ -375,7 +376,11 @@ export async function generateLearningStations(
           type: 'quiz' as const,
           title: 'Christentum-Quiz',
           content: {
-            questions: [
+            questions: researchData?.quiz_questions?.filter((q: any) => 
+              q.question.toLowerCase().includes('christ') || 
+              q.question.toLowerCase().includes('jesus') ||
+              q.question.toLowerCase().includes('bibel')
+            ).slice(0, 8) || [
               {
                 question: 'Wer ist Jesus Christus für die Christen?',
                 options: [
@@ -384,7 +389,8 @@ export async function generateLearningStations(
                   'Ein weiser Lehrer',
                   'Ein politischer Führer'
                 ],
-                correct: 1
+                correct: 1,
+                explanation: 'Jesus Christus ist für Christen der Sohn Gottes und Erlöser der Menschheit.'
               },
               {
                 question: 'Welches Symbol ist das wichtigste im Christentum?',
@@ -394,7 +400,8 @@ export async function generateLearningStations(
                   'Das Kreuz',
                   'Das Rad'
                 ],
-                correct: 2
+                correct: 2,
+                explanation: 'Das Kreuz symbolisiert den Opfertod Jesu und ist das wichtigste christliche Symbol.'
               }
             ]
           },
@@ -726,7 +733,8 @@ export async function generateLearningStations(
 export async function createDiscoveryPath(
   content: string, 
   title: string, 
-  learnerProfile: LearnerProfile
+  learnerProfile: LearnerProfile,
+  researchData?: any
 ): Promise<DiscoveryPath> {
   
   console.log('🗺️ Creating discovery path for:', title)
@@ -738,7 +746,7 @@ export async function createDiscoveryPath(
   // 2. Generiere Lernstationen für jedes Ziel
   const allStations: LearningStation[] = []
   for (const objective of objectives) {
-    const stations = await generateLearningStations(objective, learnerProfile, content)
+    const stations = await generateLearningStations(objective, learnerProfile, content, researchData)
     allStations.push(...stations)
   }
   

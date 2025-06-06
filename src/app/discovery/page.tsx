@@ -50,7 +50,8 @@ function DiscoveryContent() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             title, 
-            content: researchData.enhancedContent || content 
+            content: researchData.enhancedContent || content,
+            researchData: researchData.research || null
           })
         })
         

@@ -1,99 +1,147 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { OpenAI } from 'openai'
 
 interface ResearchResult {
   summary: string
   key_facts: string[]
-  sources: Array<{
+  detailed_explanations: string[]
+  quiz_questions: Array<{
+    question: string
+    options: string[]
+    correct: number
+    explanation: string
+    difficulty: 'beginner' | 'intermediate' | 'advanced'
+  }>
+  interactive_elements: Array<{
+    type: 'drag_drop' | 'sorting' | 'matching' | 'timeline'
     title: string
-    url: string
     description: string
+    content: any
   }>
   additional_topics: string[]
+  reasoning_process?: string
 }
 
-async function callPerplexityAPI(topic: string): Promise<ResearchResult> {
-  const prompt = `Führe eine umfassende Recherche zum Thema "${topic}" für eine Klassenarbeitsvorbereitung durch. 
+async function callDeepSeekResearch(topic: string, content: string): Promise<ResearchResult> {
+  const client = new OpenAI({
+    apiKey: process.env.DEEPSEEK_API_KEY,
+    baseURL: 'https://api.deepseek.com'
+  })
 
-Fokussiere dich auf:
-- Grundlegende Konzepte und Definitionen
-- Wichtige Formeln, Regeln oder Prinzipien
-- Häufige Prüfungsthemen und typische Aufgaben
-- Praktische Beispiele und Anwendungen
-- Häufige Fehlerquellen bei Schülern
+  const prompt = `Du bist ein Experte für Bildungsinhalte und Klassenarbeitsvorbereitung. 
 
-Antworte im folgenden JSON-Format:
+THEMA: "${topic}"
+KLASSENARBEIT-INHALT: "${content}"
+
+Erstelle eine umfassende Lernressource mit folgenden Elementen:
+
+1. TIEFE ANALYSE des Themas für Schüler der 8.-12. Klasse
+2. 20-25 QUIZ-FRAGEN mit verschiedenen Schwierigkeitsgraden
+3. INTERAKTIVE ELEMENTE (Drag&Drop, Sortierung, etc.)
+4. DETAILLIERTE ERKLÄRUNGEN für besseres Verständnis
+
+Antworte AUSSCHLIESSLICH mit diesem JSON-Format:
 {
-  "summary": "Kurze Zusammenfassung des Themas (2-3 Sätze)",
-  "key_facts": ["Wichtiger Fakt 1", "Wichtiger Fakt 2", "Wichtiger Fakt 3"],
-  "sources": [
+  "summary": "Kompakte, schülergerechte Zusammenfassung (3-4 Sätze)",
+  "key_facts": ["10-15 wichtige Fakten als Bullet Points"],
+  "detailed_explanations": ["5-7 ausführliche Erklärungen zu Kernkonzepten"],
+  "quiz_questions": [
     {
-      "title": "Quelle 1 Titel",
-      "url": "https://example.com",
-      "description": "Kurze Beschreibung der Quelle"
+      "question": "Präzise formulierte Frage",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correct": 0,
+      "explanation": "Warum diese Antwort richtig ist",
+      "difficulty": "beginner|intermediate|advanced"
     }
   ],
-  "additional_topics": ["Verwandtes Thema 1", "Verwandtes Thema 2"]
+  "interactive_elements": [
+    {
+      "type": "drag_drop|sorting|matching|timeline",
+      "title": "Interaktives Element Titel",
+      "description": "Was soll der Schüler machen?",
+      "content": {
+        "items": ["Element 1", "Element 2"],
+        "categories": ["Kategorie A", "Kategorie B"],
+        "instructions": "Ziehe die Elemente in die richtige Reihenfolge"
+      }
+    }
+  ],
+  "additional_topics": ["Verwandte Themen für Vertiefung"]
 }`
 
   try {
-    console.log('🔍 Calling Perplexity API for research...')
+    console.log('🧠 Calling DeepSeek-Reasoner for comprehensive research...')
     
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'llama-3.1-sonar-small-128k-online',
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        max_tokens: 2000,
-        temperature: 0.3
-      })
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`Perplexity API error: ${response.statusText} - ${errorText}`)
-    }
-
-    const data = await response.json()
-    console.log('✅ Perplexity research completed')
-    
-    let researchText = data.choices[0].message.content
-    
-    // Clean up JSON if needed
-    if (researchText.includes('```json')) {
-      researchText = researchText.split('```json')[1].split('```')[0]
-    }
-    
-    const researchJson = JSON.parse(researchText.trim())
-    
-    return researchJson as ResearchResult
-  } catch (error) {
-    console.error('❌ Perplexity API error:', error)
-    
-    // Fallback
-    return {
-      summary: `Grundlegende Informationen zum Thema "${topic}" konnten nicht abgerufen werden.`,
-      key_facts: [
-        'Thema ist relevant für die Klassenarbeit',
-        'Weitere Recherche empfohlen',
-        'Fallback-Modus aktiv'
-      ],
-      sources: [
+    const response = await client.chat.completions.create({
+      model: 'deepseek-reasoner',
+      messages: [
         {
-          title: 'Fallback-Quelle',
-          url: '#',
-          description: 'API-Fehler aufgetreten'
+          role: 'user',
+          content: prompt
         }
       ],
-      additional_topics: ['Verwandte Themen', 'Weitere Recherche nötig']
+      max_tokens: 32000,
+      response_format: { type: 'json_object' }
+    })
+
+    const reasoning = response.choices[0].message.reasoning_content
+    const content = response.choices[0].message.content
+    
+    console.log('✅ DeepSeek research completed with reasoning')
+    console.log('🧠 Reasoning length:', reasoning?.length || 0, 'chars')
+    
+    let researchJson: ResearchResult
+    try {
+      researchJson = JSON.parse(content || '{}')
+      // Add reasoning process to result
+      if (reasoning) {
+        researchJson.reasoning_process = reasoning
+      }
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError)
+      throw new Error('Invalid JSON response from DeepSeek')
+    }
+    
+    return researchJson
+  } catch (error) {
+    console.error('❌ DeepSeek API error:', error)
+    
+    // Comprehensive fallback with more content
+    return {
+      summary: `Das Thema "${topic}" ist ein wichtiger Bestandteil des Lehrplans und erfordert eine systematische Vorbereitung für die Klassenarbeit.`,
+      key_facts: [
+        'Grundlegende Konzepte verstehen',
+        'Praktische Anwendungen kennen',
+        'Zusammenhänge erkennen',
+        'Kritisches Denken entwickeln',
+        'Wissen anwenden können'
+      ],
+      detailed_explanations: [
+        `Das Thema ${topic} umfasst verschiedene Aspekte, die Schüler verstehen sollten.`,
+        'Eine systematische Herangehensweise hilft beim Lernen.',
+        'Praktische Beispiele vertiefen das Verständnis.'
+      ],
+      quiz_questions: [
+        {
+          question: `Was ist ein wichtiger Aspekt von ${topic}?`,
+          options: ['Grundverständnis', 'Anwendung', 'Reflexion', 'Alle genannten'],
+          correct: 3,
+          explanation: 'Alle Aspekte sind wichtig für ein vollständiges Verständnis.',
+          difficulty: 'beginner' as const
+        }
+      ],
+      interactive_elements: [
+        {
+          type: 'sorting' as const,
+          title: 'Konzepte ordnen',
+          description: 'Sortiere die Konzepte nach Wichtigkeit',
+          content: {
+            items: ['Grundlagen', 'Anwendung', 'Vertiefung'],
+            instructions: 'Ziehe die Elemente in die richtige Reihenfolge'
+          }
+        }
+      ],
+      additional_topics: ['Verwandte Themen', 'Weiterführende Inhalte']
     }
   }
 }
@@ -112,7 +160,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const researchData = await callPerplexityAPI(researchTopic)
+    const researchData = await callDeepSeekResearch(researchTopic, content || '')
     
     // Enhanced content combining original with research
     const enhancedContent = content ? 

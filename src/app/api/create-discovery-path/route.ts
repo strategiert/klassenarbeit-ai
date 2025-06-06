@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
   try {
     console.log('🚀 Creating discovery path...')
     
-    const { title, content, learnerProfile } = await request.json()
+    const { title, content, learnerProfile, researchData } = await request.json()
 
     if (!title || !content) {
       return NextResponse.json(
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     console.log('🧠 Generating adaptive learning path...')
     
     // Create the discovery path using AI
-    const discoveryPath = await createDiscoveryPath(content, title, profile)
+    const discoveryPath = await createDiscoveryPath(content, title, profile, researchData)
     
     console.log('✅ Discovery path created:', {
       objectives: discoveryPath.objectives.length,
