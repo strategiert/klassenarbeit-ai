@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import DiscoveryExplorer from '@/components/DiscoveryExplorer'
+import { getSubjectTheme } from '@/lib/subject-themes'
 
 interface DiscoveryPageProps {
   params: Promise<{ subdomain: string }>
@@ -29,15 +30,20 @@ export default async function DiscoveryPage({ params }: DiscoveryPageProps) {
   }
 
   const discoveryPath = discoveryData.quiz_data
+  
+  // Get theme for dynamic styling
+  const theme = getSubjectTheme(discoveryData.content || '', discoveryPath.title)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+    <div className={`min-h-screen bg-gradient-to-br ${theme.backgroundGradient}`}>
       {/* Header */}
       <header className="bg-white/90 backdrop-blur-sm shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{discoveryPath.title}</h1>
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                {theme.headerIcon} {discoveryPath.title}
+              </h1>
               <p className="text-gray-600 mt-1">{discoveryPath.description}</p>
             </div>
             <div className="flex items-center space-x-4 text-sm text-gray-500">
@@ -63,6 +69,7 @@ export default async function DiscoveryPage({ params }: DiscoveryPageProps) {
         <DiscoveryExplorer 
           discoveryPath={discoveryPath} 
           pathId={discoveryData.id}
+          content={discoveryData.content}
         />
       </main>
     </div>

@@ -2,13 +2,18 @@
 
 import { useState, useEffect } from 'react'
 import { DiscoveryPath, LearningObjective, LearningStation, LearnerProfile } from '@/lib/discovery-engine'
+import { getSubjectTheme, SubjectTheme } from '@/lib/subject-themes'
 
 interface DiscoveryExplorerProps {
   discoveryPath: DiscoveryPath
   pathId: string
+  content?: string
 }
 
-export default function DiscoveryExplorer({ discoveryPath, pathId }: DiscoveryExplorerProps) {
+export default function DiscoveryExplorer({ discoveryPath, pathId, content }: DiscoveryExplorerProps) {
+  // Get theme based on content and title
+  const theme = getSubjectTheme(content || '', discoveryPath.title)
+  
   const [currentObjective, setCurrentObjective] = useState<string | null>(null)
   const [currentStation, setCurrentStation] = useState<string | null>(null)
   const [learnerProfile, setLearnerProfile] = useState<LearnerProfile>({
@@ -92,11 +97,11 @@ export default function DiscoveryExplorer({ discoveryPath, pathId }: DiscoveryEx
 
   const getStationIcon = (type: string) => {
     switch (type) {
-      case 'explanation': return '📚'
-      case 'quiz': return '🧠'
-      case 'simulation': return '🔬'
-      case 'reflection': return '💭'
-      case 'challenge': return '🎯'
+      case 'explanation': return theme.stationIcons.explanation
+      case 'quiz': return theme.stationIcons.quiz
+      case 'simulation': return theme.stationIcons.simulation
+      case 'reflection': return theme.stationIcons.reflection
+      case 'challenge': return theme.stationIcons.challenge
       default: return '📝'
     }
   }
@@ -108,7 +113,7 @@ export default function DiscoveryExplorer({ discoveryPath, pathId }: DiscoveryEx
       <div className="lg:col-span-1">
         <div className="bg-white rounded-2xl shadow-xl p-6 sticky top-24">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-            🗺️ Lernlandkarte
+            🗺️ {theme.subjectSpecificTerms.learningWorld}
           </h2>
           
           <div className="space-y-4">
@@ -137,9 +142,9 @@ export default function DiscoveryExplorer({ discoveryPath, pathId }: DiscoveryEx
                   >
                     <div className="flex items-start space-x-3">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${
-                        progress === 100 ? 'bg-green-500' : isUnlocked ? 'bg-blue-500' : 'bg-gray-400'
+                        progress === 100 ? 'bg-green-500' : isUnlocked ? `bg-[${theme.primaryColor}]` : 'bg-gray-400'
                       }`}>
-                        {progress === 100 ? '✓' : index + 1}
+                        {progress === 100 ? theme.visualElements.completedIcon : index + 1}
                       </div>
                       
                       <div className="flex-1 min-w-0">
@@ -160,8 +165,11 @@ export default function DiscoveryExplorer({ discoveryPath, pathId }: DiscoveryEx
                         {/* Progress Bar */}
                         <div className="mt-2 w-full bg-gray-200 rounded-full h-1">
                           <div 
-                            className="bg-blue-500 h-1 rounded-full transition-all duration-300"
-                            style={{ width: `${progress}%` }}
+                            className="h-1 rounded-full transition-all duration-300"
+                            style={{ 
+                              width: `${progress}%`,
+                              backgroundColor: theme.primaryColor
+                            }}
                           ></div>
                         </div>
                       </div>
@@ -178,11 +186,12 @@ export default function DiscoveryExplorer({ discoveryPath, pathId }: DiscoveryEx
             <div className="flex items-center space-x-2">
               <div className="flex-1 bg-gray-200 rounded-full h-2">
                 <div 
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-500"
+                  className="h-2 rounded-full transition-all duration-500"
                   style={{ 
                     width: `${discoveryPath.objectives ? 
                       (learnerProfile.completedObjectives.length / discoveryPath.objectives.length) * 100 
-                      : 0}%` 
+                      : 0}%`,
+                    background: `linear-gradient(to right, ${theme.primaryColor}, ${theme.secondaryColor})`
                   }}
                 ></div>
               </div>
@@ -237,11 +246,11 @@ function ObjectiveExplorer({
   
   const getStationIcon = (type: string) => {
     switch (type) {
-      case 'explanation': return '📚'
-      case 'quiz': return '🧠'
-      case 'simulation': return '🔬'
-      case 'reflection': return '💭'
-      case 'challenge': return '🎯'
+      case 'explanation': return theme.stationIcons.explanation
+      case 'quiz': return theme.stationIcons.quiz
+      case 'simulation': return theme.stationIcons.simulation
+      case 'reflection': return theme.stationIcons.reflection
+      case 'challenge': return theme.stationIcons.challenge
       default: return '📝'
     }
   }

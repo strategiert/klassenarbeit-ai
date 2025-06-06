@@ -1,8 +1,8 @@
 // Supabase Admin SDK für automatische Datenbank-Operationen
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = 'https://zunqwunibwyymzjdxjko.supabase.co'
-const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1bnF3dW5pYnd5eW16amR4amtvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTE2MzQwOCwiZXhwIjoyMDY0NzM5NDA4fQ.cbIWhx9JT30ABFUe2YAFERTr9zSc3pPaxYkLZsHfOu4'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 // Admin client mit Service Role Key - kann ALLES!
 export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
