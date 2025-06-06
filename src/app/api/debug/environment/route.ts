@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
         })
         
         const response = await client.chat.completions.create({
-          model: 'deepseek-chat',
+          model: 'deepseek-reasoner',
           messages: [{ role: 'user', content: 'Test' }],
           max_tokens: 5
         })

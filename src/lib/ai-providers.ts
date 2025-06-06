@@ -58,7 +58,7 @@ export async function callDeepSeek(content: string, title: string): Promise<Quiz
       'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
     },
     body: JSON.stringify({
-      model: 'deepseek-chat',
+      model: 'deepseek-reasoner',
       messages: [{ role: 'user', content: QUIZ_PROMPT(content, title) }],
       max_tokens: 4000,
       temperature: 0.7
