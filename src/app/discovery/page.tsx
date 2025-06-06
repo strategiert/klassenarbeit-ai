@@ -34,8 +34,10 @@ function DiscoveryContent() {
           
           if (researchResponse.ok) {
             researchData = await researchResponse.json()
+            console.log('✅ Research successful:', researchData)
           } else {
-            console.log('⚠️ Research failed, using original content')
+            const errorText = await researchResponse.text()
+            console.log('⚠️ Research failed:', researchResponse.status, errorText)
           }
         } catch (researchError) {
           console.log('⚠️ Research error, continuing with original content:', researchError)

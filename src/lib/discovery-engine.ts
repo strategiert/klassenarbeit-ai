@@ -376,11 +376,7 @@ export async function generateLearningStations(
           type: 'quiz' as const,
           title: 'Christentum-Quiz',
           content: {
-            questions: researchData?.quiz_questions?.filter((q: any) => 
-              q.question.toLowerCase().includes('christ') || 
-              q.question.toLowerCase().includes('jesus') ||
-              q.question.toLowerCase().includes('bibel')
-            ).slice(0, 8) || [
+            questions: researchData?.quiz_questions?.slice(0, 20) || [
               {
                 question: 'Wer ist Jesus Christus für die Christen?',
                 options: [
@@ -657,8 +653,8 @@ export async function generateLearningStations(
         type: 'explanation' as const,
         title: `${objective.title} verstehen`,
         content: {
-          text: `Lass uns ${objective.title} Schritt für Schritt erkunden. ${objective.description}`,
-          examples: [
+          text: researchData?.detailed_explanations?.[0] || `Lass uns ${objective.title} Schritt für Schritt erkunden. ${objective.description}`,
+          examples: researchData?.key_facts?.slice(0, 3) || [
             `Praktisches Beispiel für ${objective.category}`,
             `Anwendung in der realen Welt`
           ],
@@ -674,7 +670,7 @@ export async function generateLearningStations(
         type: 'quiz' as const,
         title: 'Verständnis testen',
         content: {
-          questions: [
+          questions: researchData?.quiz_questions?.slice(0, 20) || [
             {
               question: `Was hast du über ${objective.title} gelernt?`,
               options: [
