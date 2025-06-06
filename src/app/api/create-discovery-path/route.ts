@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
             type: 'discovery_path',
             ...discoveryPath
           },
+          // Ensure status fields are set correctly
           quiz_generation_status: 'completed',
           quiz_generated_at: new Date().toISOString()
         })
@@ -76,7 +77,10 @@ export async function POST(request: NextRequest) {
             type: 'discovery_path',
             ...discoveryPath
           },
+          // Fix: Add missing status fields for research-first architecture
+          research_status: 'completed',
           quiz_generation_status: 'completed',
+          research_completed_at: new Date().toISOString(),
           quiz_generated_at: new Date().toISOString()
         })
         .select()
