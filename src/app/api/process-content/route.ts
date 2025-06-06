@@ -234,9 +234,9 @@ async function performAsyncResearch(klassenarbeitId: string, title: string, cont
       .from('klassenarbeiten')
       .update({
         quiz_data: { 
-          status: 'generating', 
+          status: 'completed', 
           progress: 70, 
-          step: 'Erstelle Lernwelt...',
+          step: 'Research abgeschlossen, erstelle Lernwelt...',
           research_data: researchData,
           research_completed_at: new Date().toISOString()
         }

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-admin'
-import { OpenAI } from 'openai'
 
 interface QuizQuestion {
   id: string
@@ -98,8 +97,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if research is completed
-    if (klassenarbeit.research_status !== 'completed' || !klassenarbeit.research_data) {
+    // Check if research is completed - check both possible locations
+    const researchData = klassenarbeit.research_data || klassenarbeit.quiz_data?.research_data
+    const researchStatus = klassenarbeit.research_status || klassenarbeit.quiz_data?.status
+    
+    if (researchStatus !== 'completed' || !researchData) {
       return NextResponse.json(
         { error: 'Forschung noch nicht abgeschlossen' },
         { status: 400 }
@@ -134,7 +136,7 @@ export async function POST(request: NextRequest) {
     
     try {
       // Convert research data to quiz format
-      const quizData = await convertResearchToQuiz(klassenarbeit.research_data, klassenarbeit.title)
+      const quizData = await convertResearchToQuiz(researchData, klassenarbeit.title)
       
       // Update database with quiz data
       const { error: updateError } = await supabase
