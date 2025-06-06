@@ -82,13 +82,13 @@ Antworte AUSSCHLIESSLICH mit diesem JSON-Format:
 }`
 
   try {
-    console.log('🧠 Calling DeepSeek-Chat for comprehensive research...')
+    console.log('🧠 Calling DeepSeek-Reasoner for comprehensive research...')
     console.log('📝 Topic:', topic.substring(0, 50), '...')
     console.log('📄 Content length:', content.length)
     console.log('🔑 API Key configured:', !!process.env.DEEPSEEK_API_KEY)
     
     const response = await client.chat.completions.create({
-      model: 'deepseek-chat',
+      model: 'deepseek-reasoner',
       messages: [
         {
           role: 'user',
