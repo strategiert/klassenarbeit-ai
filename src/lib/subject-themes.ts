@@ -478,9 +478,14 @@ export const subjectThemes: Record<string, SubjectTheme> = {
 }
 
 // Hilfsfunktion um Theme basierend auf Inhalt zu erhalten
-export function getSubjectTheme(content: string, title: string): SubjectTheme {
-  const detectedSubject = detectSubjectFromContent(content, title)
-  return subjectThemes[detectedSubject] || subjectThemes.general
+export function getSubjectTheme(content: string = '', title: string = ''): SubjectTheme {
+  try {
+    const detectedSubject = detectSubjectFromContent(content, title)
+    return subjectThemes[detectedSubject] || subjectThemes.general
+  } catch (error) {
+    console.error('Error getting subject theme:', error)
+    return subjectThemes.general
+  }
 }
 
 // Generiert CSS-Variablen für ein Theme
