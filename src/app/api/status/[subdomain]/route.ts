@@ -39,10 +39,27 @@ export async function GET(
         (klassenarbeit.quiz_data.questions?.length > 0 || klassenarbeit.quiz_data.stations?.length > 0)
       
       if (!isCompleted) {
-        return NextResponse.json(
-          { error: 'Quiz noch nicht bereit - wird noch verarbeitet' },
-          { status: 404 }
-        )
+        // Return processing status instead of 404
+        return NextResponse.json({
+          success: true,
+          id: klassenarbeit.id,
+          subdomain: subdomain,
+          title: klassenarbeit.title,
+          status: 'processing',
+          stages: [
+            { name: 'research', label: 'DeepSeek AI Forschung', status: 'processing', progress: 50 },
+            { name: 'generation', label: 'Lernwelt Generierung', status: 'pending', progress: 0 }
+          ],
+          progress: { current: 50, step: 'KI analysiert Inhalt...', elapsed_time: { minutes: 0, seconds: 0, total_seconds: 0 }, estimated_remaining_minutes: 2 },
+          is_active: klassenarbeit.is_active,
+          ready_for_quiz: false,
+          redirect_url: null,
+          debug_info: {
+            fallback_mode: true,
+            has_quiz_data: !!klassenarbeit.quiz_data,
+            quiz_data_status: klassenarbeit.quiz_data?.status || 'unknown'
+          }
+        }, { status: 202 })
       }
       
       // Return simplified status for entries without status fields

@@ -156,3 +156,92 @@ Async research failed: TypeError: fetch failed
  GET /favicon.ico?favicon.45db1c09.ico 200 in 221ms
  GET /religion-8-klasse-ugofv1 404 in 32ms
  GET /discovery/religion-8-klasse-ugofv1 404 in 30ms
+   Reload env: .env.local
+ GET / 200 in 184ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 245ms
+🔬 Starting async research process for 37bbbb4e-dc84-4c23-a738-842970b0eaf7
+ POST /api/process-content 200 in 367ms
+🧠 Starting deep research for 37bbbb4e-dc84-4c23-a738-842970b0eaf7
+ GET /api/status/katzen-h8lnxp 404 in 172ms
+🧠 Calling DeepSeek-Reasoner for comprehensive research...
+📝 Topic: katzen ...
+📄 Content length: 22
+🔑 API Key configured: true
+ GET /api/status/katzen-h8lnxp 404 in 79ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 41ms
+ GET /api/status/katzen-h8lnxp 404 in 85ms
+ GET /api/status/katzen-h8lnxp 404 in 67ms
+ GET /api/status/katzen-h8lnxp 404 in 72ms
+ GET /api/status/katzen-h8lnxp 404 in 68ms
+ GET /api/status/katzen-h8lnxp 404 in 57ms
+ GET /api/status/katzen-h8lnxp 404 in 56ms
+ GET / 200 in 44ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 232ms
+🔬 Starting async research process for 221d5d8d-d290-43f4-ace1-94c3b1571dad
+ POST /api/process-content 200 in 106ms
+🧠 Starting deep research for 221d5d8d-d290-43f4-ace1-94c3b1571dad
+ GET /api/status/katzen-tbgf6o 404 in 107ms
+🧠 Calling DeepSeek-Reasoner for comprehensive research...
+📝 Topic: Katzen ...
+📄 Content length: 21
+🔑 API Key configured: true
+ GET /api/status/katzen-tbgf6o 404 in 58ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 32ms
+ GET /api/status/katzen-tbgf6o 404 in 62ms
+ GET /api/status/katzen-tbgf6o 404 in 58ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 58ms
+ GET /api/status/katzen-tbgf6o 404 in 70ms
+ GET / 200 in 38ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 49ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 234ms
+✅ DeepSeek research completed
+📊 Response length: 4387
+🧠 Has reasoning: false
+✅ Research completed for 37bbbb4e-dc84-4c23-a738-842970b0eaf7
+ ✓ Compiled /api/create-discovery-path in 474ms
+ ⨯ ./src/app/api/create-discovery-path/route.ts:91:7
+Ecmascript file had an error
+[0m [90m 89 |[39m       data [33m=[39m insertResult[33m.[39mdata[0m
+[0m [90m 90 |[39m       error [33m=[39m insertResult[33m.[39merror[0m
+[0m[31m[1m>[22m[39m[90m 91 |[39m       subdomain [33m=[39m newSubdomain[0m
+[0m [90m    |[39m       [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
+[0m [90m 92 |[39m     }[0m
+[0m [90m 93 |[39m[0m
+[0m [90m 94 |[39m     [36mif[39m (error) {[0m
+
+cannot reassign to a variable declared with `const`
+
+
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 738ms
+ POST /api/create-discovery-path 500 in 1338ms
+Async research failed: Error: Discovery path generation failed
+    at performAsyncResearch (src/app/api/process-content/route.ts:243:14)
+  241 |       
+  242 |       if (!response.ok) {
+> 243 |         throw new Error('Discovery path generation failed')
+      |              ^
+  244 |       }
+  245 |     } else {
+  246 |       const response = await fetch(`${appUrl}/api/generate-quiz`, {
+   Reload env: .env.local
+ GET / 500 in 54ms
+ GET / 500 in 30ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 500 in 29ms
+ GET /favicon.ico 500 in 15ms
+✅ DeepSeek research completed
+📊 Response length: 4603
+🧠 Has reasoning: false
+✅ Research completed for 221d5d8d-d290-43f4-ace1-94c3b1571dad
+ ✓ Compiled /api/generate-quiz in 329ms
+📝 Quiz generation API request received
+ POST /api/generate-quiz 400 in 443ms
+Async research failed: Error: Quiz generation failed
+    at performAsyncResearch (src/app/api/process-content/route.ts:255:14)
+  253 |       
+  254 |       if (!response.ok) {
+> 255 |         throw new Error('Quiz generation failed')
+      |              ^
+  256 |       }
+  257 |     }
+  258 |
