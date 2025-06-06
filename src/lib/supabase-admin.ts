@@ -194,6 +194,108 @@ export async function createAdvancedTables() {
     await supabaseAdmin.rpc('exec_sql', { sql: analyticsSQL })
     console.log('✅ Analytics tables created')
 
+    // 2.1 Discovery Path Progress Tracking
+    const discoveryProgressSQL = `
+      -- User Discovery Progress Table
+      CREATE TABLE IF NOT EXISTS user_discovery_progress (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        
+        -- References
+        user_id UUID REFERENCES user_profiles(id) ON DELETE CASCADE,
+        klassenarbeit_id UUID REFERENCES klassenarbeiten(id) ON DELETE CASCADE,
+        discovery_path_id TEXT NOT NULL,
+        
+        -- Current Position
+        current_objective_index INTEGER DEFAULT 0,
+        current_station_index INTEGER DEFAULT 0,
+        current_objective_id TEXT,
+        current_station_id TEXT,
+        
+        -- Completion Tracking
+        completed_objectives TEXT[] DEFAULT '{}',
+        completed_stations TEXT[] DEFAULT '{}',
+        station_progress JSONB DEFAULT '{}', -- {station_id: progress_percentage}
+        
+        -- Overall Progress
+        progress_percentage DECIMAL(5,2) DEFAULT 0.0,
+        stations_completed_count INTEGER DEFAULT 0,
+        objectives_completed_count INTEGER DEFAULT 0,
+        
+        -- Status and Timing
+        status TEXT CHECK (status IN ('started', 'in_progress', 'completed', 'paused')) DEFAULT 'started',
+        started_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        last_activity_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        completed_at TIMESTAMP WITH TIME ZONE,
+        total_time_spent_minutes INTEGER DEFAULT 0,
+        
+        -- Learning Data
+        learning_style_at_start TEXT,
+        strengths_at_start TEXT[] DEFAULT '{}',
+        difficulty_adjustments JSONB DEFAULT '{}',
+        
+        -- Completion Data
+        final_score DECIMAL(5,2),
+        completion_data JSONB DEFAULT '{}',
+        
+        -- Analytics
+        average_station_time INTEGER DEFAULT 0,
+        help_requests_count INTEGER DEFAULT 0,
+        retry_count INTEGER DEFAULT 0,
+        
+        UNIQUE(user_id, klassenarbeit_id, discovery_path_id)
+      );
+      
+      -- Station Activity Tracking
+      CREATE TABLE IF NOT EXISTS discovery_station_activities (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        
+        -- References
+        user_id UUID REFERENCES user_profiles(id) ON DELETE CASCADE,
+        progress_id UUID REFERENCES user_discovery_progress(id) ON DELETE CASCADE,
+        
+        -- Station Info
+        station_id TEXT NOT NULL,
+        station_type TEXT NOT NULL,
+        objective_id TEXT NOT NULL,
+        station_title TEXT,
+        
+        -- Activity Tracking
+        started_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        completed_at TIMESTAMP WITH TIME ZONE,
+        time_spent_seconds INTEGER DEFAULT 0,
+        
+        -- Interaction Data
+        interactions_count INTEGER DEFAULT 0,
+        correct_answers INTEGER DEFAULT 0,
+        total_answers INTEGER DEFAULT 0,
+        activity_data JSONB DEFAULT '{}',
+        
+        -- Learning Insights
+        difficulty_rating INTEGER CHECK (difficulty_rating BETWEEN 1 AND 5),
+        confidence_level INTEGER CHECK (confidence_level BETWEEN 1 AND 5),
+        help_requested BOOLEAN DEFAULT FALSE,
+        
+        -- Status
+        completion_status TEXT CHECK (completion_status IN ('started', 'completed', 'skipped', 'failed')) DEFAULT 'started',
+        score_percentage DECIMAL(5,2)
+      );
+      
+      -- Indexes for Performance
+      CREATE INDEX IF NOT EXISTS idx_user_discovery_progress_user ON user_discovery_progress(user_id);
+      CREATE INDEX IF NOT EXISTS idx_user_discovery_progress_klassenarbeit ON user_discovery_progress(klassenarbeit_id);
+      CREATE INDEX IF NOT EXISTS idx_user_discovery_progress_path ON user_discovery_progress(discovery_path_id);
+      CREATE INDEX IF NOT EXISTS idx_user_discovery_progress_status ON user_discovery_progress(status);
+      CREATE INDEX IF NOT EXISTS idx_discovery_station_activities_user ON discovery_station_activities(user_id);
+      CREATE INDEX IF NOT EXISTS idx_discovery_station_activities_progress ON discovery_station_activities(progress_id);
+      CREATE INDEX IF NOT EXISTS idx_discovery_station_activities_station ON discovery_station_activities(station_id);
+    `
+
+    await supabaseAdmin.rpc('exec_sql', { sql: discoveryProgressSQL })
+    console.log('✅ Discovery Path progress tables created')
+
     // 3. Gamification System
     const gamificationSQL = `
       -- Achievement System
