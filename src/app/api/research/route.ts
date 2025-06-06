@@ -70,17 +70,17 @@ Antworte AUSSCHLIESSLICH mit diesem JSON-Format:
 }`
 
   try {
-    console.log('🧠 Calling DeepSeek-Reasoner for comprehensive research...')
+    console.log('🧠 Calling DeepSeek-Chat for comprehensive research...')
     
     const response = await client.chat.completions.create({
-      model: 'deepseek-reasoner',
+      model: 'deepseek-chat',  // Faster model!
       messages: [
         {
           role: 'user',
           content: prompt
         }
       ],
-      max_tokens: 32000,
+      max_tokens: 8000,  // Reduced for speed
       response_format: { type: 'json_object' }
     })
 
