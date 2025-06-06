@@ -31,7 +31,7 @@ interface ProcessingStatus {
 
 export default function UploadForm() {
   const [inputMethod, setInputMethod] = useState<'text' | 'file'>('text')
-  const [mode, setMode] = useState<'quiz' | 'discovery'>('quiz')
+  const [mode] = useState<'discovery'>('discovery')
   const [textContent, setTextContent] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [title, setTitle] = useState('')
@@ -388,51 +388,17 @@ export default function UploadForm() {
         />
       </div>
 
-      {/* Mode Selection */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
-          Welchen Modus möchtest du verwenden?
-        </label>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <button
-            type="button"
-            onClick={() => setMode('quiz')}
-            className={`p-4 rounded-xl border-2 transition-all text-left ${
-              mode === 'quiz'
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-200 bg-white hover:border-gray-300'
-            }`}
-          >
-            <div className="flex items-start space-x-3">
-              <span className="text-2xl">🧠</span>
-              <div>
-                <h3 className="font-semibold text-gray-900">Klassisches Quiz</h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  Traditionelles Quiz mit Fragen und sofortiger Auswertung
-                </p>
-              </div>
-            </div>
-          </button>
-          
-          <button
-            type="button"
-            onClick={() => setMode('discovery')}
-            className={`p-4 rounded-xl border-2 transition-all text-left ${
-              mode === 'discovery'
-                ? 'border-purple-500 bg-purple-50'
-                : 'border-gray-200 bg-white hover:border-gray-300'
-            }`}
-          >
-            <div className="flex items-start space-x-3">
-              <span className="text-2xl">🗺️</span>
-              <div>
-                <h3 className="font-semibold text-gray-900">Discovery Modus</h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  Spielerische Lernreise mit verschiedenen Stationen und Aktivitäten
-                </p>
-              </div>
-            </div>
-          </button>
+      {/* Discovery Mode Info */}
+      <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-6">
+        <div className="flex items-start space-x-4">
+          <span className="text-3xl">🗺️</span>
+          <div>
+            <h3 className="font-bold text-purple-900 mb-2">Interaktive Lernwelt</h3>
+            <p className="text-purple-700 text-sm leading-relaxed">
+              Erstelle eine gamifizierte Lernreise mit interaktiven Stationen, Fortschritt-Tracking, 
+              Achievements und adaptiven Lernpfaden. Perfekt für nachhaltiges Lernen!
+            </p>
+          </div>
         </div>
       </div>
 

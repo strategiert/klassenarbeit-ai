@@ -248,34 +248,27 @@ async function performAsyncResearch(klassenarbeitId: string, title: string, cont
     // Trigger content generation
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     
-    if (mode === 'discovery') {
-      const response = await fetch(`${appUrl}/api/create-discovery-path`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title,
-          content,
-          researchData,
-          klassenarbeitId,
-          subdomain: (await supabase.from('klassenarbeiten').select('subdomain').eq('id', klassenarbeitId).single()).data?.subdomain
-        }),
-      })
-      
-      if (!response.ok) {
-        throw new Error('Discovery path generation failed')
-      }
+    // Always create discovery path (no quiz mode)
+    const subdomainResult = await supabase.from('klassenarbeiten').select('subdomain').eq('id', klassenarbeitId).single()
+    const subdomain = subdomainResult.data?.subdomain
+    
+    const response = await fetch(`${appUrl}/api/create-discovery-path`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title,
+        content,
+        researchData,
+        klassenarbeitId,
+        subdomain
+      }),
+    })
+    
+    if (!response.ok) {
+      console.error('❌ Discovery path generation failed:', await response.text())
+      throw new Error('Discovery path generation failed')
     } else {
-      const response = await fetch(`${appUrl}/api/generate-quiz`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          subdomain: (await supabase.from('klassenarbeiten').select('subdomain').eq('id', klassenarbeitId).single()).data?.subdomain
-        }),
-      })
-      
-      if (!response.ok) {
-        throw new Error('Quiz generation failed')
-      }
+      console.log('✅ Discovery path generation successful!')
     }
 
     console.log(`🎉 Complete workflow finished for ${klassenarbeitId}`)
@@ -308,7 +301,7 @@ async function performAsyncResearch(klassenarbeitId: string, title: string, cont
 
 export async function POST(request: NextRequest) {
   try {
-    const { title, content, teacherId, mode = 'quiz' } = await request.json()
+    const { title, content, teacherId, mode = 'discovery' } = await request.json()
 
     if (!title || !content) {
       return NextResponse.json(

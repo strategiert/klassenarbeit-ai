@@ -36,17 +36,30 @@ export async function POST(request: NextRequest) {
       console.log('🔄 No research data in request, fetching from database...')
       
       try {
-        const { data: dbRecord } = await supabase
+        const { data: dbRecord, error: dbQueryError } = await supabase
           .from('klassenarbeiten')
           .select('quiz_data, research_data')
           .eq(klassenarbeitId ? 'id' : 'subdomain', klassenarbeitId || subdomain)
           .single()
         
-        // Check both locations for research data
-        finalResearchData = dbRecord?.research_data || dbRecord?.quiz_data?.research_data
-        
-        console.log('📚 Found research data in database:', !!finalResearchData)
-        console.log('📍 Data location:', dbRecord?.research_data ? 'separate_column' : 'in_quiz_data')
+        if (dbQueryError) {
+          console.error('❌ Database query error:', dbQueryError)
+        } else {
+          console.log('🗄️ Database record found:', !!dbRecord)
+          console.log('🗄️ Has quiz_data:', !!dbRecord?.quiz_data)
+          console.log('🗄️ Has research_data column:', !!dbRecord?.research_data)
+          console.log('🗄️ Quiz data keys:', dbRecord?.quiz_data ? Object.keys(dbRecord.quiz_data) : 'none')
+          
+          // Check both locations for research data
+          finalResearchData = dbRecord?.research_data || dbRecord?.quiz_data?.research_data
+          
+          console.log('📚 Found research data in database:', !!finalResearchData)
+          console.log('📍 Data location:', dbRecord?.research_data ? 'separate_column' : 'in_quiz_data')
+          
+          if (dbRecord?.quiz_data?.research_data) {
+            console.log('🔍 Research data structure:', Object.keys(dbRecord.quiz_data.research_data))
+          }
+        }
         
       } catch (dbError) {
         console.error('❌ Failed to fetch research data from database:', dbError)
