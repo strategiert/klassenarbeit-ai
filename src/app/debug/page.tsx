@@ -14,6 +14,11 @@ export default function DebugPage() {
   const [subdomainInput, setSubdomainInput] = useState('')
   const [subdomainData, setSubdomainData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
+  const [autoRefresh, setAutoRefresh] = useState(false)
+  const [refreshInterval, setRefreshInterval] = useState(3000) // 3 seconds default
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
+  const [previousStatus, setPreviousStatus] = useState<string | null>(null)
+  const [statusChanged, setStatusChanged] = useState(false)
 
   // Load environment data on mount
   useEffect(() => {
@@ -30,20 +35,45 @@ export default function DebugPage() {
     }
   }
 
-  const loadSubdomainData = async () => {
+  const loadSubdomainData = async (silent = false) => {
     if (!subdomainInput.trim()) return
     
-    setLoading(true)
+    if (!silent) setLoading(true)
     try {
       const response = await fetch(`/api/debug/${subdomainInput}`)
       const data = await response.json()
+      
+      // Check for status changes
+      const currentStatus = data?.analysis?.status_info?.overall_status
+      if (previousStatus && currentStatus && previousStatus !== currentStatus) {
+        setStatusChanged(true)
+        setTimeout(() => setStatusChanged(false), 3000) // Reset after 3 seconds
+      }
+      setPreviousStatus(currentStatus)
+      
       setSubdomainData(data)
+      setLastUpdate(new Date())
     } catch (error) {
       console.error('Failed to load subdomain data:', error)
       setSubdomainData({ error: error.message })
     }
-    setLoading(false)
+    if (!silent) setLoading(false)
   }
+
+  // Auto-refresh effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null
+    
+    if (autoRefresh && subdomainInput.trim() && subdomainData) {
+      interval = setInterval(() => {
+        loadSubdomainData(true) // Silent refresh
+      }, refreshInterval)
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval)
+    }
+  }, [autoRefresh, subdomainInput, refreshInterval, subdomainData])
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -127,21 +157,62 @@ export default function DebugPage() {
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">🔍 Subdomain Inspector</h2>
           
-          <div className="flex space-x-4 mb-4">
-            <input
-              type="text"
-              value={subdomainInput}
-              onChange={(e) => setSubdomainInput(e.target.value)}
-              placeholder="Subdomain eingeben (z.B. 4d6ngvmbkv2614)"
-              className="flex-1 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              onClick={loadSubdomainData}
-              disabled={loading || !subdomainInput.trim()}
-              className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 disabled:opacity-50"
-            >
-              {loading ? '🔄' : '🔍'} Analysieren
-            </button>
+          <div className="space-y-4">
+            <div className="flex space-x-4">
+              <input
+                type="text"
+                value={subdomainInput}
+                onChange={(e) => setSubdomainInput(e.target.value)}
+                placeholder="Subdomain eingeben (z.B. hasen-ysg2n3)"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                onClick={() => loadSubdomainData()}
+                disabled={loading || !subdomainInput.trim()}
+                className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 disabled:opacity-50"
+              >
+                {loading ? '🔄' : '🔍'} Analysieren
+              </button>
+            </div>
+            
+            {/* Auto-Refresh Controls */}
+            {subdomainData && (
+              <div className="bg-gray-100 p-3 rounded flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={autoRefresh}
+                      onChange={(e) => setAutoRefresh(e.target.checked)}
+                      className="rounded"
+                    />
+                    <span className="text-sm font-medium">🔄 Auto-Refresh</span>
+                  </label>
+                  
+                  <select
+                    value={refreshInterval}
+                    onChange={(e) => setRefreshInterval(Number(e.target.value))}
+                    disabled={!autoRefresh}
+                    className="text-sm border border-gray-300 rounded px-2 py-1 disabled:opacity-50"
+                  >
+                    <option value={1000}>1s</option>
+                    <option value={2000}>2s</option>
+                    <option value={3000}>3s</option>
+                    <option value={5000}>5s</option>
+                    <option value={10000}>10s</option>
+                  </select>
+                </div>
+                
+                <div className="text-xs text-gray-500">
+                  {lastUpdate && (
+                    <>
+                      Letzte Aktualisierung: {lastUpdate.toLocaleTimeString()}
+                      {autoRefresh && <span className="ml-2 text-green-600">●</span>}
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {subdomainData && (
@@ -160,8 +231,12 @@ export default function DebugPage() {
                   </div>
 
                   {/* Status */}
-                  <div className="bg-yellow-50 p-4 rounded">
-                    <h4 className="font-semibold mb-2">🎯 Status</h4>
+                  <div className={`p-4 rounded transition-all duration-500 ${
+                    statusChanged ? 'bg-green-100 border-2 border-green-300' : 'bg-yellow-50'
+                  }`}>
+                    <h4 className="font-semibold mb-2">
+                      🎯 Status {statusChanged && <span className="text-green-600 animate-pulse">🔄 UPDATED!</span>}
+                    </h4>
                     <div className="space-y-2 text-sm">
                       <div className="grid grid-cols-2 gap-2">
                         <div>Research: <span className={`px-2 py-1 rounded text-xs ${
