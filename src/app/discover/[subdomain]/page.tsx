@@ -23,16 +23,34 @@ async function getDiscoveryPath(subdomain: string) {
       return { status: 'not_found', discovery: null }
     }
 
-    // STRICT CHECKING: Both research AND quiz generation must be completed
-    if (discovery.research_status !== 'completed' || discovery.quiz_generation_status !== 'completed') {
-      console.log(`Discovery not ready: research=${discovery.research_status}, generation=${discovery.quiz_generation_status}`)
-      return { 
-        status: 'not_ready', 
-        discovery: null,
-        research_status: discovery.research_status,
-        quiz_generation_status: discovery.quiz_generation_status,
-        title: discovery.title,
-        subdomain: discovery.subdomain
+    // FALLBACK CHECKING: Check if status fields exist, otherwise assume completed if quiz_data exists
+    const hasStatusFields = discovery.research_status !== undefined && discovery.quiz_generation_status !== undefined
+    
+    if (hasStatusFields) {
+      // If status fields exist, use strict checking
+      if (discovery.research_status !== 'completed' || discovery.quiz_generation_status !== 'completed') {
+        console.log(`Discovery not ready: research=${discovery.research_status}, generation=${discovery.quiz_generation_status}`)
+        return { 
+          status: 'not_ready', 
+          discovery: null,
+          research_status: discovery.research_status,
+          quiz_generation_status: discovery.quiz_generation_status,
+          title: discovery.title,
+          subdomain: discovery.subdomain
+        }
+      }
+    } else {
+      // Fallback: If no status fields, check if quiz_data exists and is complete
+      if (!discovery.quiz_data || !discovery.quiz_data.stations || discovery.quiz_data.stations.length === 0) {
+        console.log('Discovery not ready: no complete quiz_data found')
+        return { 
+          status: 'not_ready', 
+          discovery: null,
+          research_status: 'unknown',
+          quiz_generation_status: 'unknown',
+          title: discovery.title,
+          subdomain: discovery.subdomain
+        }
       }
     }
 
