@@ -110,11 +110,11 @@ export default function DiscoveryExplorer({ discoveryPath, pathId, content }: Di
 
   const getStationIcon = (type: string) => {
     switch (type) {
-      case 'explanation': return theme.stationIcons.explanation
-      case 'quiz': return theme.stationIcons.quiz
-      case 'simulation': return theme.stationIcons.simulation
-      case 'reflection': return theme.stationIcons.reflection
-      case 'challenge': return theme.stationIcons.challenge
+      case 'explanation': return theme?.stationIcons?.explanation || '📚'
+      case 'quiz': return theme?.stationIcons?.quiz || '🧠'
+      case 'simulation': return theme?.stationIcons?.simulation || '🔬'
+      case 'reflection': return theme?.stationIcons?.reflection || '💭'
+      case 'challenge': return theme?.stationIcons?.challenge || '🎯'
       default: return '📝'
     }
   }
@@ -126,7 +126,7 @@ export default function DiscoveryExplorer({ discoveryPath, pathId, content }: Di
       <div className="lg:col-span-1">
         <div className="bg-white rounded-2xl shadow-xl p-6 sticky top-24">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-            🗺️ {theme.subjectSpecificTerms.learningWorld}
+            🗺️ {theme?.subjectSpecificTerms?.learningWorld || 'Lernlandkarte'}
           </h2>
           
           <div className="space-y-4">
@@ -155,9 +155,9 @@ export default function DiscoveryExplorer({ discoveryPath, pathId, content }: Di
                   >
                     <div className="flex items-start space-x-3">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${
-                        progress === 100 ? 'bg-green-500' : isUnlocked ? `bg-[${theme.primaryColor}]` : 'bg-gray-400'
+                        progress === 100 ? 'bg-green-500' : isUnlocked ? `bg-[${theme?.primaryColor || '#3B82F6'}]` : 'bg-gray-400'
                       }`}>
-                        {progress === 100 ? theme.visualElements.completedIcon : index + 1}
+                        {progress === 100 ? (theme?.visualElements?.completedIcon || '✅') : index + 1}
                       </div>
                       
                       <div className="flex-1 min-w-0">
@@ -181,7 +181,7 @@ export default function DiscoveryExplorer({ discoveryPath, pathId, content }: Di
                             className="h-1 rounded-full transition-all duration-300"
                             style={{ 
                               width: `${progress}%`,
-                              backgroundColor: theme.primaryColor
+                              backgroundColor: theme?.primaryColor || '#3B82F6'
                             }}
                           ></div>
                         </div>
@@ -204,7 +204,7 @@ export default function DiscoveryExplorer({ discoveryPath, pathId, content }: Di
                     width: `${(discoveryPath.objectives || []).length > 0 ? 
                       (learnerProfile.completedObjectives.length / (discoveryPath.objectives || []).length) * 100 
                       : 0}%`,
-                    background: `linear-gradient(to right, ${theme.primaryColor}, ${theme.secondaryColor})`
+                    background: `linear-gradient(to right, ${theme?.primaryColor || '#3B82F6'}, ${theme?.secondaryColor || '#60A5FA'})`
                   }}
                 ></div>
               </div>
@@ -259,11 +259,11 @@ function ObjectiveExplorer({
   
   const getStationIcon = (type: string) => {
     switch (type) {
-      case 'explanation': return theme.stationIcons.explanation
-      case 'quiz': return theme.stationIcons.quiz
-      case 'simulation': return theme.stationIcons.simulation
-      case 'reflection': return theme.stationIcons.reflection
-      case 'challenge': return theme.stationIcons.challenge
+      case 'explanation': return theme?.stationIcons?.explanation || '📚'
+      case 'quiz': return theme?.stationIcons?.quiz || '🧠'
+      case 'simulation': return theme?.stationIcons?.simulation || '🔬'
+      case 'reflection': return theme?.stationIcons?.reflection || '💭'
+      case 'challenge': return theme?.stationIcons?.challenge || '🎯'
       default: return '📝'
     }
   }
