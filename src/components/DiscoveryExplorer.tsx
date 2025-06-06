@@ -11,6 +11,19 @@ interface DiscoveryExplorerProps {
 }
 
 export default function DiscoveryExplorer({ discoveryPath, pathId, content }: DiscoveryExplorerProps) {
+  // Safety check - if discoveryPath is invalid, show error
+  if (!discoveryPath || typeof discoveryPath !== 'object') {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="text-4xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Lernreise nicht verfügbar</h2>
+          <p className="text-gray-600">Die Lernreise-Daten konnten nicht geladen werden.</p>
+        </div>
+      </div>
+    )
+  }
+
   // Get theme based on content and title (with safe fallback)
   const theme = getSubjectTheme(content || '', discoveryPath?.title || '')
   
@@ -117,7 +130,7 @@ export default function DiscoveryExplorer({ discoveryPath, pathId, content }: Di
           </h2>
           
           <div className="space-y-4">
-            {discoveryPath.objectives?.map((objective, index) => {
+            {(discoveryPath.objectives || []).map((objective, index) => {
               const isUnlocked = isObjectiveUnlocked(objective)
               const progress = getObjectiveProgress(objective.id)
               const isActive = currentObjective === objective.id
@@ -188,16 +201,16 @@ export default function DiscoveryExplorer({ discoveryPath, pathId, content }: Di
                 <div 
                   className="h-2 rounded-full transition-all duration-500"
                   style={{ 
-                    width: `${discoveryPath.objectives ? 
-                      (learnerProfile.completedObjectives.length / discoveryPath.objectives.length) * 100 
+                    width: `${(discoveryPath.objectives || []).length > 0 ? 
+                      (learnerProfile.completedObjectives.length / (discoveryPath.objectives || []).length) * 100 
                       : 0}%`,
                     background: `linear-gradient(to right, ${theme.primaryColor}, ${theme.secondaryColor})`
                   }}
                 ></div>
               </div>
               <span className="text-sm font-semibold text-gray-700">
-                {discoveryPath.objectives ? 
-                  Math.round((learnerProfile.completedObjectives.length / discoveryPath.objectives.length) * 100)
+                {(discoveryPath.objectives || []).length > 0 ? 
+                  Math.round((learnerProfile.completedObjectives.length / (discoveryPath.objectives || []).length) * 100)
                   : 0}%
               </span>
             </div>
@@ -207,9 +220,9 @@ export default function DiscoveryExplorer({ discoveryPath, pathId, content }: Di
 
       {/* Main Content Area */}
       <div className="lg:col-span-3">
-        {currentObjective && (
+        {currentObjective && discoveryPath.objectives && (
           <ObjectiveExplorer
-            objective={discoveryPath.objectives?.find(obj => obj.id === currentObjective)!}
+            objective={discoveryPath.objectives.find(obj => obj.id === currentObjective)!}
             stations={getStationsForObjective(currentObjective)}
             currentStation={currentStation}
             setCurrentStation={setCurrentStation}
