@@ -47,6 +47,13 @@ export interface LearnerProfile {
 // Extract learning objectives from DeepSeek research data
 export async function extractLearningObjectives(researchData: any, title: string): Promise<LearningObjective[]> {
   console.log('🎯 Extracting learning objectives from DeepSeek research for:', title)
+  console.log('📊 Research data structure:', {
+    hasData: !!researchData,
+    hasKeyFacts: !!(researchData?.key_facts),
+    hasExplanations: !!(researchData?.detailed_explanations),
+    hasSummary: !!(researchData?.summary),
+    keys: researchData ? Object.keys(researchData) : []
+  })
   
   // STRICT: No fallback content - research data is required
   if (!researchData) {

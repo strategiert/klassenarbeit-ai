@@ -28,15 +28,73 @@ export async function POST(request: NextRequest) {
     const profile = learnerProfile || defaultProfile
 
     console.log('🧠 Generating adaptive learning path...')
+    console.log('📊 Research data from request:', !!researchData)
+    
+    // FALLBACK: If no research data in request, try to get it from database
+    let finalResearchData = researchData
+    if (!finalResearchData && (klassenarbeitId || subdomain)) {
+      console.log('🔄 No research data in request, fetching from database...')
+      
+      try {
+        const { data: dbRecord } = await supabase
+          .from('klassenarbeiten')
+          .select('quiz_data, research_data')
+          .eq(klassenarbeitId ? 'id' : 'subdomain', klassenarbeitId || subdomain)
+          .single()
+        
+        // Check both locations for research data
+        finalResearchData = dbRecord?.research_data || dbRecord?.quiz_data?.research_data
+        
+        console.log('📚 Found research data in database:', !!finalResearchData)
+        console.log('📍 Data location:', dbRecord?.research_data ? 'separate_column' : 'in_quiz_data')
+        
+      } catch (dbError) {
+        console.error('❌ Failed to fetch research data from database:', dbError)
+      }
+    }
+    
+    console.log('🔍 Final research data keys:', finalResearchData ? Object.keys(finalResearchData) : 'none')
+    
+    // Validate research data
+    if (!finalResearchData) {
+      console.error('❌ No research data available from request or database!')
+      return NextResponse.json(
+        { error: 'Research data is required for discovery path generation. Research phase must be completed first.' },
+        { status: 400 }
+      )
+    }
     
     // Create the discovery path using AI
-    const discoveryPath = await createDiscoveryPath(content, title, profile, researchData)
-    
-    console.log('✅ Discovery path created:', {
-      objectives: discoveryPath.objectives.length,
-      stations: discoveryPath.stations.length,
-      totalTime: discoveryPath.estimatedTotalTime
-    })
+    let discoveryPath
+    try {
+      discoveryPath = await createDiscoveryPath(content, title, profile, finalResearchData)
+      
+      console.log('✅ Discovery path created:', {
+        objectives: discoveryPath.objectives.length,
+        stations: discoveryPath.stations.length,
+        totalTime: discoveryPath.estimatedTotalTime
+      })
+    } catch (discoveryError) {
+      console.error('❌ Discovery path creation failed:', discoveryError)
+      console.error('❌ Error details:', {
+        message: discoveryError.message,
+        stack: discoveryError.stack,
+        researchDataAvailable: !!researchData,
+        researchDataKeys: researchData ? Object.keys(researchData) : []
+      })
+      
+      return NextResponse.json(
+        { 
+          error: 'Discovery path creation failed', 
+          details: discoveryError.message,
+          debug: {
+            hasResearchData: !!researchData,
+            researchDataKeys: researchData ? Object.keys(researchData) : []
+          }
+        },
+        { status: 500 }
+      )
+    }
 
     let data
     let error
