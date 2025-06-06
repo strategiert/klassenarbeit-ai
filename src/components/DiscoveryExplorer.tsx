@@ -24,8 +24,29 @@ export default function DiscoveryExplorer({ discoveryPath, pathId, content }: Di
     )
   }
 
-  // Get theme based on content and title (with safe fallback)
-  const theme = getSubjectTheme(content || '', discoveryPath?.title || '')
+  // Get theme based on content and title (with BULLETPROOF fallback)
+  let theme
+  try {
+    theme = getSubjectTheme(content || '', discoveryPath?.title || '')
+    if (!theme || typeof theme !== 'object') {
+      throw new Error('Invalid theme')
+    }
+  } catch (error) {
+    console.error('Theme error, using fallback:', error)
+    theme = {
+      subjectSpecificTerms: { learningWorld: 'Lernlandkarte' },
+      visualElements: { completedIcon: '✅' },
+      primaryColor: '#3B82F6',
+      secondaryColor: '#60A5FA',
+      stationIcons: {
+        explanation: '📚',
+        quiz: '🧠', 
+        simulation: '🔬',
+        reflection: '💭',
+        challenge: '🎯'
+      }
+    }
+  }
   
   const [currentObjective, setCurrentObjective] = useState<string | null>(null)
   const [currentStation, setCurrentStation] = useState<string | null>(null)
@@ -229,6 +250,7 @@ export default function DiscoveryExplorer({ discoveryPath, pathId, content }: Di
             completedStations={completedStations}
             onCompleteStation={completeStation}
             isStationUnlocked={isStationUnlocked}
+            theme={theme}
           />
         )}
       </div>
@@ -245,6 +267,7 @@ interface ObjectiveExplorerProps {
   completedStations: Set<string>
   onCompleteStation: (stationId: string) => void
   isStationUnlocked: (station: LearningStation) => boolean
+  theme: any
 }
 
 function ObjectiveExplorer({ 
@@ -254,7 +277,8 @@ function ObjectiveExplorer({
   setCurrentStation,
   completedStations,
   onCompleteStation,
-  isStationUnlocked
+  isStationUnlocked,
+  theme
 }: ObjectiveExplorerProps) {
   
   const getStationIcon = (type: string) => {
