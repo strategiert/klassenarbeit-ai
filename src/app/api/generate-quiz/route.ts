@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
-import { generateQuizWithFallback } from '@/lib/ai-providers'
+import { createClient } from '@/lib/supabase-admin'
+import { OpenAI } from 'openai'
 
 interface QuizQuestion {
   id: string
@@ -12,7 +12,6 @@ interface QuizQuestion {
   topic: string
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface QuizData {
   title: string
   description: string
@@ -21,65 +20,187 @@ interface QuizData {
   estimatedTime: number
 }
 
+interface ResearchData {
+  summary: string
+  key_facts: string[]
+  detailed_explanations: string[]
+  quiz_questions: Array<{
+    question: string
+    options: string[]
+    correct: number
+    explanation: string
+    difficulty: 'beginner' | 'intermediate' | 'advanced'
+  }>
+  interactive_elements: Array<{
+    type: 'drag_drop' | 'sorting' | 'matching' | 'timeline'
+    title: string
+    description: string
+    content: any
+  }>
+  additional_topics: string[]
+  reasoning_process?: string
+}
 
-function generateSubdomain(): string {
-  return Math.random().toString(36).substring(2, 8) + Date.now().toString(36)
+async function convertResearchToQuiz(researchData: ResearchData, title: string): Promise<QuizData> {
+  // Convert research quiz questions to our quiz format
+  const questions: QuizQuestion[] = researchData.quiz_questions.map((q, index) => ({
+    id: `q${index + 1}`,
+    question: q.question,
+    type: 'multiple-choice' as const,
+    options: q.options,
+    correctAnswer: q.options[q.correct],
+    explanation: q.explanation,
+    topic: q.difficulty
+  }))
+
+  return {
+    title: `Quiz: ${title}`,
+    description: researchData.summary,
+    questions,
+    totalQuestions: questions.length,
+    estimatedTime: Math.max(5, Math.ceil(questions.length * 1.5))
+  }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('📝 API Request received')
+    console.log('📝 Quiz generation API request received')
     
     const body = await request.json()
-    console.log('📦 Request body:', { title: body.title, contentLength: body.content?.length })
-    
-    const { title, content, teacherId = 'demo-teacher' } = body
+    const { subdomain, id } = body
 
-    if (!title || !content) {
-      console.log('❌ Missing title or content')
+    if (!subdomain && !id) {
       return NextResponse.json(
-        { error: 'Titel und Inhalt sind erforderlich' },
+        { error: 'Subdomain oder ID ist erforderlich' },
         { status: 400 }
       )
     }
 
-    console.log('🤖 Starting AI quiz generation...')
+    const supabase = createClient()
     
-    // Generate quiz using AI with fallback system
-    const quizData = await generateQuizWithFallback(content, title)
+    // Find the klassenarbeit by subdomain or id
+    let query = supabase
+      .from('klassenarbeiten')
+      .select('*')
     
-    console.log('✅ Quiz generated successfully')
-    
-    // Generate unique subdomain
-    const subdomain = generateSubdomain()
-    
-    // Demo-Modus: Funktioniert ohne Datenbank
-    // In Produktion würde hier die Datenbank-Speicherung stattfinden
-    const data = {
-      id: subdomain,
-      title,
-      content,
-      teacher_id: teacherId,
-      subdomain,
-      quiz_data: quizData,
-      created_at: new Date().toISOString()
+    if (subdomain) {
+      query = query.eq('subdomain', subdomain)
+    } else {
+      query = query.eq('id', id)
     }
     
-    console.log('✅ Quiz erstellt (Demo-Modus):', { title, questions: quizData.questions?.length })
+    const { data: klassenarbeit, error: fetchError } = await query.single()
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:8080'
-    const quizUrl = `${appUrl}/quiz/${subdomain}`
+    if (fetchError || !klassenarbeit) {
+      return NextResponse.json(
+        { error: 'Klassenarbeit nicht gefunden' },
+        { status: 404 }
+      )
+    }
+
+    // Check if research is completed
+    if (klassenarbeit.research_status !== 'completed' || !klassenarbeit.research_data) {
+      return NextResponse.json(
+        { error: 'Forschung noch nicht abgeschlossen' },
+        { status: 400 }
+      )
+    }
+
+    // Check if quiz is already generated
+    if (klassenarbeit.quiz_generation_status === 'completed' && klassenarbeit.quiz_data) {
+      console.log('✅ Quiz already exists, returning existing data')
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:8080'
+      const quizUrl = `${appUrl}/quiz/${klassenarbeit.subdomain}`
+      
+      return NextResponse.json({
+        success: true,
+        quiz: {
+          id: klassenarbeit.id,
+          title: klassenarbeit.title,
+          subdomain: klassenarbeit.subdomain,
+          quiz_data: klassenarbeit.quiz_data
+        },
+        url: quizUrl
+      })
+    }
+
+    // Update status to processing
+    await supabase
+      .from('klassenarbeiten')
+      .update({ quiz_generation_status: 'processing' })
+      .eq('id', klassenarbeit.id)
+
+    console.log('🤖 Generating quiz from research data...')
     
-    console.log('🔗 Quiz URL generated:', quizUrl)
+    try {
+      // Convert research data to quiz format
+      const quizData = await convertResearchToQuiz(klassenarbeit.research_data, klassenarbeit.title)
+      
+      // Update database with quiz data
+      const { error: updateError } = await supabase
+        .from('klassenarbeiten')
+        .update({
+          quiz_data: quizData,
+          quiz_generation_status: 'completed',
+          quiz_completed_at: new Date().toISOString(),
+          is_active: true
+        })
+        .eq('id', klassenarbeit.id)
 
-    return NextResponse.json({
-      success: true,
-      quiz: data,
-      url: quizUrl
-    })
+      if (updateError) {
+        console.error('Quiz update error:', updateError)
+        
+        // Mark as failed
+        await supabase
+          .from('klassenarbeiten')
+          .update({
+            quiz_generation_status: 'failed',
+            error_message: 'Fehler beim Speichern der Quiz-Daten'
+          })
+          .eq('id', klassenarbeit.id)
+          
+        return NextResponse.json(
+          { error: 'Fehler beim Speichern der Quiz-Daten' },
+          { status: 500 }
+        )
+      }
+
+      console.log('✅ Quiz generated successfully from research data')
+
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:8080'
+      const quizUrl = `${appUrl}/quiz/${klassenarbeit.subdomain}`
+      
+      return NextResponse.json({
+        success: true,
+        quiz: {
+          id: klassenarbeit.id,
+          title: klassenarbeit.title,
+          subdomain: klassenarbeit.subdomain,
+          quiz_data: quizData
+        },
+        url: quizUrl
+      })
+
+    } catch (quizError) {
+      console.error('Quiz generation error:', quizError)
+      
+      // Mark quiz generation as failed
+      await supabase
+        .from('klassenarbeiten')
+        .update({
+          quiz_generation_status: 'failed',
+          error_message: quizError instanceof Error ? quizError.message : 'Unbekannter Fehler'
+        })
+        .eq('id', klassenarbeit.id)
+        
+      return NextResponse.json(
+        { error: 'Fehler bei der Quiz-Generierung' },
+        { status: 500 }
+      )
+    }
 
   } catch (error) {
-    console.error('❌ API error:', error)
+    console.error('❌ Quiz generation API error:', error)
     return NextResponse.json(
       { error: `Fehler: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}` },
       { status: 500 }

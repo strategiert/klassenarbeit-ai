@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase-admin'
 import DiscoveryExplorer from '@/components/DiscoveryExplorer'
 import { getSubjectTheme } from '@/lib/subject-themes'
 
@@ -8,27 +8,136 @@ interface DiscoveryPageProps {
 }
 
 async function getDiscoveryPath(subdomain: string) {
-  const { data, error } = await supabase
-    .from('klassenarbeiten')
-    .select('*')
-    .eq('subdomain', subdomain)
-    .single()
+  const supabase = createClient()
+  
+  try {
+    const { data: discovery, error } = await supabase
+      .from('klassenarbeiten')
+      .select('*')
+      .eq('subdomain', subdomain)
+      .eq('is_active', true)
+      .single()
 
-  if (error || !data) {
-    return null
+    if (error || !discovery) {
+      console.error('Discovery not found:', error)
+      return { status: 'not_found', discovery: null }
+    }
+
+    // STRICT CHECKING: Both research AND quiz generation must be completed
+    if (discovery.research_status !== 'completed' || discovery.quiz_generation_status !== 'completed') {
+      console.log(`Discovery not ready: research=${discovery.research_status}, generation=${discovery.quiz_generation_status}`)
+      return { 
+        status: 'not_ready', 
+        discovery: null,
+        research_status: discovery.research_status,
+        quiz_generation_status: discovery.quiz_generation_status,
+        title: discovery.title,
+        subdomain: discovery.subdomain
+      }
+    }
+
+    // Additional check: quiz_data must exist and be valid
+    if (!discovery.quiz_data || typeof discovery.quiz_data !== 'object') {
+      console.error('Invalid quiz_data')
+      return { status: 'not_ready', discovery: null }
+    }
+
+    // Increment view count only for fully ready discoveries
+    await supabase
+      .from('klassenarbeiten')
+      .update({ views_count: discovery.views_count + 1 })
+      .eq('id', discovery.id)
+
+    return { status: 'ready', discovery }
+  } catch (error) {
+    console.error('Error fetching discovery:', error)
+    return { status: 'error', discovery: null }
   }
-
-  return data
 }
 
 export default async function DiscoveryPage({ params }: DiscoveryPageProps) {
   const { subdomain } = await params
-  const discoveryData = await getDiscoveryPath(subdomain)
+  const result = await getDiscoveryPath(subdomain)
 
-  if (!discoveryData) {
+  // Handle different states
+  if (result.status === 'not_found') {
     notFound()
   }
 
+  if (result.status === 'not_ready') {
+    // Show "Still Processing" page instead of 404
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center">
+        <div className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-md">
+          <div className="text-6xl mb-6">🗺️</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Lernreise wird noch erstellt</h2>
+          <p className="text-gray-600 mb-6">
+            "{result.title}" ist noch nicht bereit. Unsere KI arbeitet gerade an hochwertigen, 
+            fachspezifischen Inhalten für deine Lernreise.
+          </p>
+          
+          <div className="space-y-3 mb-6">
+            <div className={`flex items-center space-x-3 p-2 rounded ${
+              result.research_status === 'completed' ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700'
+            }`}>
+              <span>{result.research_status === 'completed' ? '✅' : '🔄'}</span>
+              <span className="text-sm">DeepSeek AI Forschung</span>
+            </div>
+            <div className={`flex items-center space-x-3 p-2 rounded ${
+              result.quiz_generation_status === 'completed' ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700'
+            }`}>
+              <span>{result.quiz_generation_status === 'completed' ? '✅' : '🔄'}</span>
+              <span className="text-sm">Lernreise Generierung</span>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full bg-purple-500 text-white py-3 px-6 rounded-lg font-medium hover:bg-purple-600 transition-colors"
+            >
+              🔄 Status aktualisieren
+            </button>
+            <a
+              href={`/api/status/${result.subdomain}`}
+              target="_blank"
+              className="inline-block w-full bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+            >
+              📊 Live-Status verfolgen
+            </a>
+          </div>
+          
+          <p className="text-xs text-gray-500 mt-4">
+            💡 Tipp: Lass diese Seite offen und aktualisiere gelegentlich den Status
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (result.status === 'error') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center">
+        <div className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-md">
+          <div className="text-6xl mb-6">❌</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Fehler aufgetreten</h2>
+          <p className="text-gray-600 mb-6">
+            Beim Laden der Lernreise ist ein Fehler aufgetreten. Bitte versuche es erneut.
+          </p>
+          <button
+            onClick={() => window.location.href = '/'}
+            className="w-full bg-purple-500 text-white py-3 px-6 rounded-lg font-medium hover:bg-purple-600 transition-colors"
+          >
+            🏠 Zur Startseite
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Only render discovery if fully ready
+  const discoveryData = result.discovery!
+  
   console.log('🔍 Discovery Data:', discoveryData)
   console.log('🔍 Quiz Data:', discoveryData.quiz_data)
   
@@ -82,16 +191,16 @@ export default async function DiscoveryPage({ params }: DiscoveryPageProps) {
 // Generate metadata for SEO
 export async function generateMetadata({ params }: DiscoveryPageProps) {
   const { subdomain } = await params
-  const discoveryData = await getDiscoveryPath(subdomain)
+  const result = await getDiscoveryPath(subdomain)
 
-  if (!discoveryData) {
+  if (result.status !== 'ready' || !result.discovery) {
     return {
       title: 'Lernreise nicht gefunden',
     }
   }
 
   return {
-    title: discoveryData.quiz_data?.title || 'Lernreise',
-    description: discoveryData.quiz_data?.description || 'Entdecke Wissen auf spielerische Art',
+    title: result.discovery.quiz_data?.title || 'Lernreise',
+    description: result.discovery.quiz_data?.description || 'Entdecke Wissen auf spielerische Art',
   }
 }

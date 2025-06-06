@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
   try {
     console.log('🚀 Creating discovery path...')
     
-    const { title, content, learnerProfile, researchData } = await request.json()
+    const { title, content, learnerProfile, researchData, klassenarbeitId, subdomain } = await request.json()
 
     if (!title || !content) {
       return NextResponse.json(
@@ -38,24 +38,54 @@ export async function POST(request: NextRequest) {
       totalTime: discoveryPath.estimatedTotalTime
     })
 
-    // Generate unique subdomain for the discovery path
-    const subdomain = Math.random().toString(36).substring(2, 8) + Date.now().toString(36)
+    let data
+    let error
     
-    // Save to database
-    const { data, error } = await supabase
-      .from('klassenarbeiten')
-      .insert({
-        title: discoveryPath.title,
-        content,
-        teacher_id: 'discovery-engine',
-        subdomain,
-        quiz_data: {
-          type: 'discovery_path',
-          ...discoveryPath
-        }
-      })
-      .select()
-      .single()
+    if (klassenarbeitId && subdomain) {
+      // Update existing database entry
+      console.log('📝 Updating existing klassenarbeit with discovery path...')
+      const updateResult = await supabase
+        .from('klassenarbeiten')
+        .update({
+          quiz_data: {
+            type: 'discovery_path',
+            ...discoveryPath
+          },
+          quiz_generation_status: 'completed',
+          quiz_generated_at: new Date().toISOString()
+        })
+        .eq('id', klassenarbeitId)
+        .select()
+        .single()
+      
+      data = updateResult.data
+      error = updateResult.error
+    } else {
+      // Create new database entry (fallback for old workflow)
+      console.log('➕ Creating new klassenarbeit for discovery path...')
+      const newSubdomain = Math.random().toString(36).substring(2, 8) + Date.now().toString(36)
+      
+      const insertResult = await supabase
+        .from('klassenarbeiten')
+        .insert({
+          title: discoveryPath.title,
+          content,
+          teacher_id: 'discovery-engine',
+          subdomain: newSubdomain,
+          quiz_data: {
+            type: 'discovery_path',
+            ...discoveryPath
+          },
+          quiz_generation_status: 'completed',
+          quiz_generated_at: new Date().toISOString()
+        })
+        .select()
+        .single()
+      
+      data = insertResult.data
+      error = insertResult.error
+      subdomain = newSubdomain
+    }
 
     if (error) {
       console.error('❌ Supabase error:', error)

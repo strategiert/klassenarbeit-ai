@@ -16,8 +16,18 @@ CREATE TABLE IF NOT EXISTS klassenarbeiten (
     teacher_id TEXT NOT NULL,
     subdomain TEXT UNIQUE NOT NULL,
     
+    -- Research data (stored from initial processing)
+    research_data JSONB,
+    research_status TEXT DEFAULT 'pending' CHECK (research_status IN ('pending', 'processing', 'completed', 'failed')),
+    research_completed_at TIMESTAMP WITH TIME ZONE,
+    
     -- Generated quiz data (JSON)
-    quiz_data JSONB NOT NULL,
+    quiz_data JSONB,
+    quiz_generation_status TEXT DEFAULT 'pending' CHECK (quiz_generation_status IN ('pending', 'processing', 'completed', 'failed')),
+    quiz_completed_at TIMESTAMP WITH TIME ZONE,
+    
+    -- Processing errors
+    error_message TEXT,
     
     -- Metadata
     views_count INTEGER DEFAULT 0,
@@ -28,6 +38,11 @@ CREATE TABLE IF NOT EXISTS klassenarbeiten (
 CREATE INDEX IF NOT EXISTS idx_klassenarbeiten_subdomain ON klassenarbeiten(subdomain);
 CREATE INDEX IF NOT EXISTS idx_klassenarbeiten_teacher ON klassenarbeiten(teacher_id);
 CREATE INDEX IF NOT EXISTS idx_klassenarbeiten_created ON klassenarbeiten(created_at DESC);
+
+-- Indexes for research-first architecture
+CREATE INDEX IF NOT EXISTS idx_klassenarbeiten_research_status ON klassenarbeiten(research_status);
+CREATE INDEX IF NOT EXISTS idx_klassenarbeiten_quiz_status ON klassenarbeiten(quiz_generation_status);
+CREATE INDEX IF NOT EXISTS idx_klassenarbeiten_processing ON klassenarbeiten(research_status, quiz_generation_status);
 
 -- Optional: Create table for tracking quiz attempts (for analytics)
 CREATE TABLE IF NOT EXISTS quiz_attempts (
@@ -61,9 +76,9 @@ ALTER TABLE klassenarbeiten ENABLE ROW LEVEL SECURITY;
 ALTER TABLE quiz_attempts ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for klassenarbeiten
--- Allow public read access to active quizzes
-CREATE POLICY "Public can view active klassenarbeiten" ON klassenarbeiten
-    FOR SELECT USING (is_active = true);
+-- Allow public read access to active quizzes that have completed quiz generation
+CREATE POLICY "Public can view active completed klassenarbeiten" ON klassenarbeiten
+    FOR SELECT USING (is_active = true AND quiz_generation_status = 'completed');
 
 -- Allow anyone to insert new klassenarbeiten (for now - you might want to restrict this)
 CREATE POLICY "Anyone can create klassenarbeiten" ON klassenarbeiten

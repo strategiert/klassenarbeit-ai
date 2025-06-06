@@ -1,41 +1,22 @@
-'use client'
-
-import { useState } from 'react'
 import Link from 'next/link'
+import UploadForm from '@/components/UploadForm'
 
 export default function Home() {
-  const [classContent, setClassContent] = useState('')
-  const [classTitle, setClassTitle] = useState('')
-  const [isCreating, setIsCreating] = useState(false)
-
-  const createDiscoveryPath = async () => {
-    if (!classContent.trim() || !classTitle.trim()) return
-    
-    setIsCreating(true)
-    
-    // Encode content for URL
-    const encodedContent = encodeURIComponent(classContent)
-    const encodedTitle = encodeURIComponent(classTitle)
-    
-    // Navigate directly to discovery explorer
-    window.location.href = `/discovery?content=${encodedContent}&title=${encodedTitle}`
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
-      <header className="bg-black/20 backdrop-blur-sm">
+      <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-300 to-blue-300 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold text-gray-900">
                 🎯 KlassenarbeitAI
               </h1>
-              <p className="text-gray-300 mt-2">Entdecke Wissen durch interaktive Lernreisen</p>
+              <p className="text-gray-600 mt-2">Erstelle intelligente Quizzes und Lernreisen mit KI</p>
             </div>
             <Link 
               href="/admin" 
-              className="bg-gray-800/50 text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-700/50 transition-colors text-sm"
+              className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm"
             >
               🛠️ Admin
             </Link>
@@ -44,111 +25,114 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         
         {/* Hero Section */}
-        <div className="text-center mb-16">
-          <div className="inline-block bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-2xl p-8 backdrop-blur-sm border border-white/10 mb-8">
-            <h2 className="text-5xl font-bold text-white mb-6">
-              🗺️ Discovery Learning Engine
-            </h2>
-            <p className="text-xl text-gray-200 mb-8 max-w-4xl mx-auto leading-relaxed">
-              Verwandle jede Klassenarbeit in eine <span className="text-purple-300 font-semibold">spielerische Lernreise</span>. 
-              Unsere KI erstellt automatisch interaktive Lernlandschaften mit mehreren Stationen, 
-              Achievements und adaptiven Pfaden.
-            </p>
-          </div>
-        </div>
-
-        {/* Input Section */}
-        <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-2xl mb-16">
-          <h3 className="text-2xl font-bold text-white mb-6 text-center">🚀 Starte deine Lernreise</h3>
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            KI-gestützte Lernwelten für jeden Klassenarbeit-Inhalt
+          </h2>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-6">
+            Unser DeepSeek AI-System analysiert deine Klassenarbeit-Inhalte tiefgreifend und erstellt 
+            maßgeschneiderte Quizzes oder Discovery-Lernreisen mit echten, fachspezifischen Inhalten.
+          </p>
           
-          <div className="space-y-6">
-            <div>
-              <label className="block text-white font-medium mb-3">
-                📚 Titel deiner Klassenarbeit:
-              </label>
-              <input
-                type="text"
-                value={classTitle}
-                onChange={(e) => setClassTitle(e.target.value)}
-                placeholder="z.B. Quadratische Funktionen, Zweiter Weltkrieg, Deutsche Grammatik..."
-                className="w-full px-4 py-3 rounded-xl bg-white/20 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm"
-              />
+          {/* Process Timeline */}
+          <div className="bg-blue-50 rounded-xl p-6 max-w-4xl mx-auto">
+            <h3 className="text-lg font-semibold text-blue-900 mb-4">📋 So funktioniert's:</h3>
+            <div className="grid md:grid-cols-3 gap-4 text-sm">
+              <div className="bg-white rounded-lg p-4">
+                <div className="text-2xl mb-2">📝</div>
+                <div className="font-medium text-gray-900 mb-1">1. Content eingeben</div>
+                <div className="text-gray-600">Klassenarbeit-Text oder Thema hochladen</div>
+                <div className="text-xs text-blue-600 mt-2">⚡ Sofort</div>
+              </div>
+              <div className="bg-white rounded-lg p-4">
+                <div className="text-2xl mb-2">🧠</div>
+                <div className="font-medium text-gray-900 mb-1">2. KI-Analyse</div>
+                <div className="text-gray-600">DeepSeek erforscht und strukturiert deine Inhalte</div>
+                <div className="text-xs text-orange-600 mt-2">⏱️ 3-5 Minuten</div>
+              </div>
+              <div className="bg-white rounded-lg p-4">
+                <div className="text-2xl mb-2">🎯</div>
+                <div className="font-medium text-gray-900 mb-1">3. Lernwelt bereit</div>
+                <div className="text-gray-600">Interaktive Quiz oder Discovery-Reise</div>
+                <div className="text-xs text-green-600 mt-2">✅ Hochqualitativ</div>
+              </div>
             </div>
             
-            <div>
-              <label className="block text-white font-medium mb-3">
-                📝 Klassenarbeit-Inhalt einfügen:
-              </label>
-              <textarea
-                value={classContent}
-                onChange={(e) => setClassContent(e.target.value)}
-                placeholder="Kopiere hier den Text deiner Klassenarbeit oder Aufgaben hinein..."
-                rows={8}
-                className="w-full px-4 py-3 rounded-xl bg-white/20 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm resize-none"
-              />
+            <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+              <p className="text-sm text-yellow-800">
+                ⚠️ <strong>Wichtig:</strong> Die KI-Analyse dauert 3-5 Minuten für qualitativ hochwertige, 
+                fachspezifische Inhalte. Keine Lernwelt wird vor Abschluss der Analyse verfügbar.
+              </p>
             </div>
-            
-            <button
-              onClick={createDiscoveryPath}
-              disabled={!classContent.trim() || !classTitle.trim() || isCreating}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold py-4 px-8 rounded-xl hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 shadow-xl"
-            >
-              {isCreating ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
-                  Erstelle deine Lernreise...
-                </div>
-              ) : (
-                '🗺️ Lernreise erstellen'
-              )}
-            </button>
           </div>
         </div>
 
-        {/* Features */}
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20 hover:bg-white/15 transition-all duration-300">
-            <div className="text-4xl mb-4">🧭</div>
-            <h3 className="text-xl font-bold text-white mb-3">Adaptive Pfade</h3>
-            <p className="text-gray-200">Jeder Lernende bekommt seinen individuellen Pfad basierend auf Stärken und Schwächen</p>
-          </div>
-          
-          <div className="bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20 hover:bg-white/15 transition-all duration-300">
-            <div className="text-4xl mb-4">🎮</div>
-            <h3 className="text-xl font-bold text-white mb-3">Gamification</h3>
-            <p className="text-gray-200">Achievements, Streaks und XP-System machen das Lernen zu einem spannenden Abenteuer</p>
-          </div>
-          
-          <div className="bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20 hover:bg-white/15 transition-all duration-300">
-            <div className="text-4xl mb-4">📊</div>
-            <h3 className="text-xl font-bold text-white mb-3">Live Analytics</h3>
-            <p className="text-gray-200">Detaillierte Einblicke in Lernfortschritt und Performance für Lehrer und Schüler</p>
-          </div>
+        {/* Upload Form */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-12">
+          <UploadForm />
         </div>
 
-        {/* Demo Section */}
-        <div className="mt-16 text-center">
-          <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-2xl p-8 backdrop-blur-sm border border-white/10">
-            <h3 className="text-2xl font-bold text-white mb-4">🎯 Demo ausprobieren</h3>
-            <p className="text-gray-200 mb-6">
-              Noch keine Klassenarbeit zur Hand? Probiere unsere Demos mit Beispiel-Themen aus!
+        {/* Quality Features */}
+        <div className="grid md:grid-cols-2 gap-8 mb-12">
+          <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+            <div className="text-4xl mb-4">🧠</div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Research-First Quizzes</h3>
+            <p className="text-gray-600 mb-4">
+              DeepSeek AI analysiert deine Inhalte tiefgreifend und erstellt 20+ fachspezifische Fragen 
+              mit verschiedenen Schwierigkeitsgraden.
             </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link 
-                href="/discovery?content=Religion%20-%20Christentum%20(allgemeine%20Informationen%2C%20Urspr%C3%BCnge%2C%20Kernbotschaft(-en)%2FVerst%C3%A4ndnis%20von%20Gott%2C%20Jesus%20Christus%2C%20fr%C3%BChe%20Christen%2C%20die%20heilige%20Schrift%2C%20Konfessionen%20(inkl.%20Unterschiede)%20%2B%20Freikirchen%2C%20wichtige%20Symbole%2C%20Kirche%2F%20Gebetshaus%2C%20Verfolgung%20von%20Christen%2C%20heilige%20Orte%2C%20wichtige%20Feiertage%2F%20besondere%20Tage%2C%20wichtige%20Kunstwerke%2C%20wichtige%20Traditionen)%20Judentum%20(allgemeine%20Informationen%2C%20Urspr%C3%BCnge%2C%20Kernbotschaft(-en)%2FVerst%C3%A4ndnis%20von%20Gott%2C%20die%20heilige%20Schrift%2C%20verschiedene%20Richtungen%2C%20wichtige%20Symbole%2C%20Synagoge%2F%20Gebetshaus%2C%20Verfolgung%20von%20Juden%2C%20heilige%20Orte%2C%20wichtige%20Feiertage%2F%20besondere%20Tage%2C%20wichtige%20Traditionen)%20Islam%20(allgemeine%20Informationen%2C%20Urspr%C3%BCnge%2C%20Verst%C3%A4ndnis%20von%20Gott%2C%20die%20heilige%20Schrift%2C%20die%20f%C3%BCnf%20S%C3%A4ulen%2C%20verschiedene%20Richtungen%2C%20wichtige%20Symbole%2C%20Moschee%2F%20Gebetshaus%2C%20Verbreitung%2C%20heilige%20Orte%2C%20wichtige%20Feiertage%2F%20besondere%20Tage%2C%20wichtige%20Traditionen)%20Jesidentum%20(allgemeine%20Informationen%2C%20Urspr%C3%BCnge%2C%20Verst%C3%A4ndnis%20von%20Gott%2C%20die%20heilige%20Schrift%2C%20drei%20Kasten%2C%20wichtige%20Symbole%2C%20Gebetshaus%2C%20Verbreitung%2C%20Verfolgung%20von%20Jesiden%2C%20heilige%20Orte%2C%20wichtige%20Feiertage%2F%20besondere%20Tage%2C%20wichtige%20Traditionen)&title=Religion%20-%20Vier%20Weltreligionen"
-                className="bg-orange-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-orange-700 transition-colors shadow-lg"
-              >
-                🕌 Demo: Religionen-Entdecker
-              </Link>
-              <Link 
-                href="/discovery?content=Die%20quadratische%20Funktion%20f(x)%20%3D%20ax%C2%B2%20%2B%20bx%20%2B%20c%20ist%20eine%20der%20wichtigsten%20Funktionen%20in%20der%20Mathematik.%20Sie%20beschreibt%20Parabeln%20und%20hat%20viele%20Anwendungen%20in%20der%20Physik%20und%20Technik.&title=Quadratische%20Funktionen"
-                className="bg-green-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-green-700 transition-colors shadow-lg"
-              >
-                🧮 Demo: Mathematik
-              </Link>
+            <div className="text-sm text-blue-600 space-y-1">
+              <div>✓ Subject-spezifische Terminologie</div>
+              <div>✓ Adaptive Schwierigkeitsgrade</div>
+              <div>✓ Detaillierte Erklärungen</div>
+            </div>
+          </div>
+          
+          <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+            <div className="text-4xl mb-4">🗺️</div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">KI-generierte Lernreisen</h3>
+            <p className="text-gray-600 mb-4">
+              Spielerische Lernpfade mit interaktiven Stationen, die auf echter Inhaltsanalyse 
+              und automatischer Themen-Erkennung basieren.
+            </p>
+            <div className="text-sm text-purple-600 space-y-1">
+              <div>✓ Automatische Themen-Detection</div>
+              <div>✓ Progressive Learning Paths</div>
+              <div>✓ Interaktive Elemente</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quality Promise */}
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-8">
+          <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Warum warten lohnt sich</h3>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="text-3xl mb-3">🎯</div>
+              <h4 className="font-semibold text-gray-900 mb-2">Fachspezifische Präzision</h4>
+              <p className="text-sm text-gray-600">DeepSeek erkennt automatisch dein Fach (Mathe, Geschichte, etc.) und erstellt passgenaue Inhalte</p>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl mb-3">📊</div>
+              <h4 className="font-semibold text-gray-900 mb-2">Qualitative Tiefe</h4>
+              <p className="text-sm text-gray-600">20+ durchdachte Fragen statt oberflächlicher Automatik-Inhalte</p>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl mb-3">🔬</div>
+              <h4 className="font-semibold text-gray-900 mb-2">Echte KI-Analyse</h4>
+              <p className="text-sm text-gray-600">Keine Shortcuts oder Templates - jede Lernwelt ist einzigartig</p>
+            </div>
+          </div>
+          
+          <div className="mt-6 text-center">
+            <div className="inline-block bg-white rounded-lg p-4 shadow-sm">
+              <p className="text-sm text-gray-700">
+                <span className="font-semibold text-green-700">Qualität braucht Zeit:</span> 
+                3-5 Minuten KI-Research = Stunden gesparte Vorbereitungszeit
+              </p>
             </div>
           </div>
         </div>

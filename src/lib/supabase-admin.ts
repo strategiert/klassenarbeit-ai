@@ -1,5 +1,5 @@
 // Supabase Admin SDK für automatische Datenbank-Operationen
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SERVICE_ROLE_KEY
@@ -8,12 +8,20 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.
 const hasAdminAccess = supabaseUrl && supabaseServiceKey
 
 // Admin client mit Service Role Key - kann ALLES!
-export const supabaseAdmin = hasAdminAccess ? createClient(supabaseUrl!, supabaseServiceKey!, {
+export const supabaseAdmin = hasAdminAccess ? createSupabaseClient(supabaseUrl!, supabaseServiceKey!, {
   auth: {
     autoRefreshToken: false,
     persistSession: false
   }
 }) : null
+
+// Export the createClient function for API routes that expect this import
+export function createClient() {
+  if (!supabaseAdmin) {
+    throw new Error('Supabase admin client not available')
+  }
+  return supabaseAdmin
+}
 
 // Database Schema Management
 export async function createAdvancedTables() {

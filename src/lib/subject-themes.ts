@@ -51,6 +51,10 @@ export function detectSubjectFromContent(content: string, title: string): string
   if (lowerContent.includes('funktion') || lowerContent.includes('gleichung') || 
       lowerContent.includes('x²') || lowerContent.includes('integral') ||
       lowerContent.includes('derivat') || lowerContent.includes('geometrie') ||
+      lowerContent.includes('wahrscheinlichkeit') || lowerContent.includes('statistik') ||
+      lowerContent.includes('zufall') || lowerContent.includes('prozent') ||
+      lowerContent.includes('bruch') || lowerContent.includes('algebra') ||
+      lowerContent.includes('rechnung') || lowerContent.includes('formel') ||
       lowerTitle.includes('mathe') || lowerTitle.includes('mathematik')) {
     return 'mathematics'
   }
@@ -477,9 +481,26 @@ export const subjectThemes: Record<string, SubjectTheme> = {
   }
 }
 
-// Hilfsfunktion um Theme basierend auf Inhalt zu erhalten
-export function getSubjectTheme(content: string = '', title: string = ''): SubjectTheme {
+// Hilfsfunktion um Theme basierend auf Inhalt oder DeepSeek research data zu erhalten
+export function getSubjectTheme(content: string = '', title: string = '', researchData?: any): SubjectTheme {
   try {
+    // If we have research data, try to detect subject from it first
+    if (researchData) {
+      const researchText = [
+        researchData.summary || '',
+        ...(researchData.key_facts || []),
+        ...(researchData.detailed_explanations || []),
+        ...(researchData.additional_topics || [])
+      ].join(' ').toLowerCase()
+      
+      // Use research data content for more accurate subject detection
+      if (researchText) {
+        const detectedSubject = detectSubjectFromContent(researchText, title)
+        return subjectThemes[detectedSubject] || subjectThemes.general
+      }
+    }
+    
+    // Fallback to original content
     const detectedSubject = detectSubjectFromContent(content, title)
     return subjectThemes[detectedSubject] || subjectThemes.general
   } catch (error) {

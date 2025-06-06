@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase-admin'
 import QuizInterface from '@/components/QuizInterface'
 
 interface QuizPageProps {
@@ -7,47 +7,136 @@ interface QuizPageProps {
 }
 
 async function getQuiz(subdomain: string) {
-  // Demo-Modus: Da keine echte Datenbank, zeige Demo-Quiz
-  return {
-    id: subdomain,
-    title: 'Demo Quiz - Funktioniert!',
-    quiz_data: {
-      title: "Demo: KI-generiertes Quiz",
-      description: "Dieses Quiz wurde automatisch von der KI erstellt",
-      questions: [
-        {
-          id: "q1",
-          question: "Die KlassenarbeitAI funktioniert ohne Datenbank im Demo-Modus.",
-          type: "true-false",
-          options: ["Wahr", "Falsch"],
-          correctAnswer: "Wahr",
-          explanation: "Richtig! Die App läuft jetzt im Demo-Modus und generiert echte Quizzes mit DeepSeek AI.",
-          topic: "Demo"
-        },
-        {
-          id: "q2",
-          question: "Welche AI-APIs sind in dieser App integriert?",
-          type: "multiple-choice",
-          options: ["Nur ChatGPT", "DeepSeek, Claude, OpenAI", "Nur Google AI", "Keine AI"],
-          correctAnswer: "DeepSeek, Claude, OpenAI",
-          explanation: "Korrekt! Die App hat ein Multi-AI Fallback-System mit DeepSeek (günstig), Claude und OpenAI als Backup.",
-          topic: "Technologie"
-        }
-      ],
-      totalQuestions: 2,
-      estimatedTime: 3
+  const supabase = createClient()
+  
+  try {
+    const { data: quiz, error } = await supabase
+      .from('klassenarbeiten')
+      .select('*')
+      .eq('subdomain', subdomain)
+      .eq('is_active', true)
+      .single()
+
+    if (error || !quiz) {
+      console.error('Quiz not found:', error)
+      return { status: 'not_found', quiz: null }
     }
+
+    // STRICT CHECKING: Both research AND quiz generation must be completed
+    if (quiz.research_status !== 'completed' || quiz.quiz_generation_status !== 'completed') {
+      console.log(`Quiz not ready: research=${quiz.research_status}, generation=${quiz.quiz_generation_status}`)
+      return { 
+        status: 'not_ready', 
+        quiz: null,
+        research_status: quiz.research_status,
+        quiz_generation_status: quiz.quiz_generation_status,
+        title: quiz.title,
+        subdomain: quiz.subdomain
+      }
+    }
+
+    // Additional check: quiz_data must exist and be valid
+    if (!quiz.quiz_data || typeof quiz.quiz_data !== 'object') {
+      console.error('Invalid quiz_data')
+      return { status: 'not_ready', quiz: null }
+    }
+
+    // Increment view count only for fully ready quizzes
+    await supabase
+      .from('klassenarbeiten')
+      .update({ views_count: quiz.views_count + 1 })
+      .eq('id', quiz.id)
+
+    return { status: 'ready', quiz }
+  } catch (error) {
+    console.error('Error fetching quiz:', error)
+    return { status: 'error', quiz: null }
   }
 }
 
 export default async function QuizPage({ params }: QuizPageProps) {
   const { subdomain } = await params
-  const quiz = await getQuiz(subdomain)
+  const result = await getQuiz(subdomain)
 
-  if (!quiz) {
+  // Handle different states
+  if (result.status === 'not_found') {
     notFound()
   }
 
+  if (result.status === 'not_ready') {
+    // Show "Still Processing" page instead of 404
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-md">
+          <div className="text-6xl mb-6">🧠</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Lernwelt wird noch erstellt</h2>
+          <p className="text-gray-600 mb-6">
+            "{result.title}" ist noch nicht bereit. Unsere KI arbeitet gerade an hochwertigen, 
+            fachspezifischen Inhalten für dich.
+          </p>
+          
+          <div className="space-y-3 mb-6">
+            <div className={`flex items-center space-x-3 p-2 rounded ${
+              result.research_status === 'completed' ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700'
+            }`}>
+              <span>{result.research_status === 'completed' ? '✅' : '🔄'}</span>
+              <span className="text-sm">DeepSeek AI Forschung</span>
+            </div>
+            <div className={`flex items-center space-x-3 p-2 rounded ${
+              result.quiz_generation_status === 'completed' ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700'
+            }`}>
+              <span>{result.quiz_generation_status === 'completed' ? '✅' : '🔄'}</span>
+              <span className="text-sm">Lernwelt Generierung</span>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full bg-blue-500 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-600 transition-colors"
+            >
+              🔄 Status aktualisieren
+            </button>
+            <a
+              href={`/api/status/${result.subdomain}`}
+              target="_blank"
+              className="inline-block w-full bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+            >
+              📊 Live-Status verfolgen
+            </a>
+          </div>
+          
+          <p className="text-xs text-gray-500 mt-4">
+            💡 Tipp: Lass diese Seite offen und aktualisiere gelegentlich den Status
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (result.status === 'error') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center">
+        <div className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-md">
+          <div className="text-6xl mb-6">❌</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Fehler aufgetreten</h2>
+          <p className="text-gray-600 mb-6">
+            Beim Laden der Lernwelt ist ein Fehler aufgetreten. Bitte versuche es erneut.
+          </p>
+          <button
+            onClick={() => window.location.href = '/'}
+            className="w-full bg-blue-500 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-600 transition-colors"
+          >
+            🏠 Zur Startseite
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Only render quiz if fully ready
+  const quiz = result.quiz!
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
