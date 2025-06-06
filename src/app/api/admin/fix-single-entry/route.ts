@@ -11,14 +11,12 @@ export async function POST(request: NextRequest) {
 
     const supabase = createClient()
     
-    // Direct update without checking first
+    // Direct update without checking first (only set status fields that exist)
     const { data, error } = await supabase
       .from('klassenarbeiten')
       .update({
         research_status: 'completed',
-        quiz_generation_status: 'completed',
-        research_completed_at: new Date().toISOString(),
-        quiz_completed_at: new Date().toISOString()
+        quiz_generation_status: 'completed'
       })
       .eq('subdomain', subdomain)
       .select('id, title, research_status, quiz_generation_status')
