@@ -162,15 +162,27 @@ export default function DebugPage() {
                   {/* Status */}
                   <div className="bg-yellow-50 p-4 rounded">
                     <h4 className="font-semibold mb-2">🎯 Status</h4>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>Research: <span className={`px-2 py-1 rounded text-xs ${
-                        subdomainData.analysis?.status_info?.research_status === 'completed' ? 'bg-green-200' : 
-                        subdomainData.analysis?.status_info?.research_status === 'failed' ? 'bg-red-200' : 'bg-yellow-200'
-                      }`}>{subdomainData.analysis?.status_info?.research_status}</span></div>
-                      <div>Generation: <span className={`px-2 py-1 rounded text-xs ${
-                        subdomainData.analysis?.status_info?.quiz_generation_status === 'completed' ? 'bg-green-200' : 
-                        subdomainData.analysis?.status_info?.quiz_generation_status === 'failed' ? 'bg-red-200' : 'bg-yellow-200'
-                      }`}>{subdomainData.analysis?.status_info?.quiz_generation_status}</span></div>
+                    <div className="space-y-2 text-sm">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>Research: <span className={`px-2 py-1 rounded text-xs ${
+                          subdomainData.analysis?.status_info?.research_status === 'completed' ? 'bg-green-200' : 
+                          subdomainData.analysis?.status_info?.research_status === 'failed' ? 'bg-red-200' : 'bg-yellow-200'
+                        }`}>{subdomainData.analysis?.status_info?.research_status}</span></div>
+                        <div>Generation: <span className={`px-2 py-1 rounded text-xs ${
+                          subdomainData.analysis?.status_info?.quiz_generation_status === 'completed' ? 'bg-green-200' : 
+                          subdomainData.analysis?.status_info?.quiz_generation_status === 'failed' ? 'bg-red-200' : 'bg-yellow-200'
+                        }`}>{subdomainData.analysis?.status_info?.quiz_generation_status}</span></div>
+                      </div>
+                      <div>Overall: <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                        subdomainData.analysis?.status_info?.overall_status === 'completed' ? 'bg-green-200' : 
+                        subdomainData.analysis?.status_info?.overall_status === 'failed' ? 'bg-red-200' : 'bg-blue-200'
+                      }`}>{subdomainData.analysis?.status_info?.overall_status}</span></div>
+                      {subdomainData.analysis?.status_info?.current_step && (
+                        <div>Current Step: <span className="text-gray-600">{subdomainData.analysis.status_info.current_step}</span></div>
+                      )}
+                      {subdomainData.analysis?.status_info?.progress && (
+                        <div>Progress: <span className="text-gray-600">{subdomainData.analysis.status_info.progress}%</span></div>
+                      )}
                     </div>
                   </div>
 
@@ -179,8 +191,13 @@ export default function DebugPage() {
                     <h4 className="font-semibold mb-2">📄 Content Analysis</h4>
                     <div className="text-sm space-y-1">
                       <div>Original Content: {subdomainData.analysis?.content_analysis?.original_content_length} chars</div>
-                      <div>Has Research Data: {subdomainData.analysis?.content_analysis?.has_research_data ? '✅' : '❌'}</div>
+                      <div>Has Research Data: {subdomainData.analysis?.content_analysis?.has_research_data ? '✅' : '❌'}
+                        {subdomainData.analysis?.content_analysis?.research_data_location && (
+                          <span className="text-gray-500 ml-1">({subdomainData.analysis.content_analysis.research_data_location})</span>
+                        )}
+                      </div>
                       <div>Has Quiz Data: {subdomainData.analysis?.content_analysis?.has_quiz_data ? '✅' : '❌'}</div>
+                      <div>Has Discovery Path: {subdomainData.analysis?.content_analysis?.has_discovery_path ? '✅' : '❌'}</div>
                       {subdomainData.analysis?.content_analysis?.original_content_preview && (
                         <div className="mt-2 p-2 bg-white rounded text-xs">
                           <strong>Preview:</strong> {subdomainData.analysis.content_analysis.original_content_preview}
@@ -198,11 +215,42 @@ export default function DebugPage() {
                         <div>Key Facts: {subdomainData.analysis.research_data_details.key_facts_count || 0}</div>
                         <div>Interactive Elements: {subdomainData.analysis.research_data_details.interactive_elements_count || 0}</div>
                         <div>Additional Topics: {subdomainData.analysis.research_data_details.additional_topics?.join(', ') || 'None'}</div>
+                        <div>Data Location: <span className="text-blue-600">{subdomainData.analysis.research_data_details.data_location}</span></div>
                         {subdomainData.analysis.research_data_details.summary && (
                           <div className="mt-2 p-2 bg-white rounded text-xs">
                             <strong>Summary:</strong> {subdomainData.analysis.research_data_details.summary}
                           </div>
                         )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Discovery Path Details */}
+                  {subdomainData.analysis?.quiz_data_details && subdomainData.analysis.quiz_data_details.type === 'discovery_path' && (
+                    <div className="bg-blue-50 p-4 rounded">
+                      <h4 className="font-semibold mb-2">🗺️ Discovery Path Details</h4>
+                      <div className="text-sm space-y-1">
+                        <div>Objectives: {subdomainData.analysis.quiz_data_details.objectives_count || 0}</div>
+                        <div>Stations: {subdomainData.analysis.quiz_data_details.stations_count || 0}</div>
+                        <div>Total Time: {subdomainData.analysis.quiz_data_details.total_time || 'Unknown'} min</div>
+                        <div>Difficulty: {subdomainData.analysis.quiz_data_details.difficulty || 'Unknown'}</div>
+                        {subdomainData.analysis.quiz_data_details.completed_at && (
+                          <div>Completed: {new Date(subdomainData.analysis.quiz_data_details.completed_at).toLocaleString()}</div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Error Details */}
+                  {subdomainData.analysis?.quiz_data_details?.error && (
+                    <div className="bg-red-50 border border-red-200 p-4 rounded">
+                      <h4 className="font-semibold mb-2 text-red-700">❌ Error Details</h4>
+                      <div className="text-sm text-red-600 space-y-1">
+                        <div><strong>Error:</strong> {subdomainData.analysis.quiz_data_details.error}</div>
+                        {subdomainData.analysis.quiz_data_details.failed_at && (
+                          <div><strong>Failed At:</strong> {new Date(subdomainData.analysis.quiz_data_details.failed_at).toLocaleString()}</div>
+                        )}
+                        <div><strong>Step:</strong> {subdomainData.analysis.quiz_data_details.step || 'Unknown'}</div>
                       </div>
                     </div>
                   )}

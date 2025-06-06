@@ -45,42 +45,61 @@ export async function GET(
       },
       
       status_info: {
-        research_status: klassenarbeit.research_status,
-        quiz_generation_status: klassenarbeit.quiz_generation_status,
-        research_completed_at: klassenarbeit.research_completed_at,
-        quiz_completed_at: klassenarbeit.quiz_completed_at,
-        error_message: klassenarbeit.error_message
+        // NEW: Read status from quiz_data (current data structure)
+        overall_status: klassenarbeit.quiz_data?.status || 'unknown',
+        research_status: klassenarbeit.research_status || (klassenarbeit.quiz_data?.research_data ? 'completed' : 'unknown'),
+        quiz_generation_status: klassenarbeit.quiz_generation_status || (klassenarbeit.quiz_data?.type === 'discovery_path' ? 'completed' : klassenarbeit.quiz_data?.status),
+        research_completed_at: klassenarbeit.research_completed_at || klassenarbeit.quiz_data?.research_completed_at,
+        quiz_completed_at: klassenarbeit.quiz_completed_at || klassenarbeit.quiz_data?.completed_at,
+        error_message: klassenarbeit.error_message || klassenarbeit.quiz_data?.error,
+        current_step: klassenarbeit.quiz_data?.step,
+        progress: klassenarbeit.quiz_data?.progress
       },
       
       content_analysis: {
         original_content_length: klassenarbeit.content?.length || 0,
         original_content_preview: klassenarbeit.content?.substring(0, 200) + '...',
-        has_research_data: !!klassenarbeit.research_data,
-        research_data_keys: klassenarbeit.research_data ? Object.keys(klassenarbeit.research_data) : [],
+        // FIXED: Check research_data in both old and new location
+        has_research_data: !!(klassenarbeit.research_data || klassenarbeit.quiz_data?.research_data),
+        research_data_location: klassenarbeit.research_data ? 'separate_column' : klassenarbeit.quiz_data?.research_data ? 'in_quiz_data' : 'none',
+        research_data_keys: (klassenarbeit.research_data || klassenarbeit.quiz_data?.research_data) ? Object.keys(klassenarbeit.research_data || klassenarbeit.quiz_data?.research_data) : [],
         has_quiz_data: !!klassenarbeit.quiz_data,
-        quiz_data_keys: klassenarbeit.quiz_data ? Object.keys(klassenarbeit.quiz_data) : []
+        quiz_data_keys: klassenarbeit.quiz_data ? Object.keys(klassenarbeit.quiz_data) : [],
+        has_discovery_path: !!(klassenarbeit.quiz_data?.discovery_path || klassenarbeit.quiz_data?.type === 'discovery_path')
       },
       
-      research_data_details: klassenarbeit.research_data ? {
-        summary: klassenarbeit.research_data.summary?.substring(0, 200) + '...',
-        key_facts_count: klassenarbeit.research_data.key_facts?.length || 0,
-        quiz_questions_count: klassenarbeit.research_data.quiz_questions?.length || 0,
-        interactive_elements_count: klassenarbeit.research_data.interactive_elements?.length || 0,
-        additional_topics: klassenarbeit.research_data.additional_topics,
-        reasoning_process_exists: !!klassenarbeit.research_data.reasoning_process
-      } : null,
+      research_data_details: (() => {
+        // FIXED: Check research_data in both locations
+        const researchData = klassenarbeit.research_data || klassenarbeit.quiz_data?.research_data;
+        return researchData ? {
+          summary: researchData.summary?.substring(0, 200) + '...',
+          key_facts_count: researchData.key_facts?.length || 0,
+          quiz_questions_count: researchData.quiz_questions?.length || 0,
+          interactive_elements_count: researchData.interactive_elements?.length || 0,
+          additional_topics: researchData.additional_topics,
+          reasoning_process_exists: !!researchData.reasoning_process,
+          data_location: klassenarbeit.research_data ? 'separate_column' : 'in_quiz_data'
+        } : null;
+      })(),
       
       quiz_data_details: klassenarbeit.quiz_data ? {
-        title: klassenarbeit.quiz_data.title,
-        description: klassenarbeit.quiz_data.description?.substring(0, 200) + '...',
         type: klassenarbeit.quiz_data.type,
         status: klassenarbeit.quiz_data.status,
         progress: klassenarbeit.quiz_data.progress,
         step: klassenarbeit.quiz_data.step,
+        error: klassenarbeit.quiz_data.error,
+        failed_at: klassenarbeit.quiz_data.failed_at,
+        completed_at: klassenarbeit.quiz_data.completed_at,
+        // Discovery Path specific
+        objectives_count: klassenarbeit.quiz_data.discovery_path?.objectives?.length || klassenarbeit.quiz_data.objectives?.length || 0,
+        stations_count: klassenarbeit.quiz_data.discovery_path?.stations?.length || klassenarbeit.quiz_data.stations?.length || 0,
+        total_time: klassenarbeit.quiz_data.discovery_path?.estimatedTotalTime || klassenarbeit.quiz_data.estimatedTotalTime,
+        difficulty: klassenarbeit.quiz_data.discovery_path?.difficulty || klassenarbeit.quiz_data.difficulty,
+        // Legacy Quiz specific  
         totalQuestions: klassenarbeit.quiz_data.totalQuestions,
         estimatedTime: klassenarbeit.quiz_data.estimatedTime,
-        objectives_count: klassenarbeit.quiz_data.objectives?.length || 0,
-        stations_count: klassenarbeit.quiz_data.stations?.length || 0
+        title: klassenarbeit.quiz_data.title,
+        description: klassenarbeit.quiz_data.description?.substring(0, 200) + '...'
       } : null,
       
       environment_check: {
@@ -97,17 +116,46 @@ export async function GET(
       }
     }
 
+    // NEW: Improved debug recommendations based on actual data structure
+    const researchData = klassenarbeit.research_data || klassenarbeit.quiz_data?.research_data;
+    const debugRecommendations = [];
+
+    // Check research phase
+    if (!researchData) {
+      debugRecommendations.push("❌ No research data found - DeepSeek API failed or not started");
+    } else {
+      debugRecommendations.push("✅ Research data found - DeepSeek API successful");
+    }
+
+    // Check discovery path generation
+    if (klassenarbeit.quiz_data?.status === 'failed') {
+      debugRecommendations.push(`❌ Discovery path generation failed: ${klassenarbeit.quiz_data.error}`);
+    } else if (klassenarbeit.quiz_data?.type === 'discovery_path') {
+      debugRecommendations.push("✅ Discovery path successfully generated");
+    } else if (klassenarbeit.quiz_data?.status === 'researching') {
+      debugRecommendations.push("🔄 Currently in research phase - wait for completion");
+    } else if (klassenarbeit.quiz_data?.status === 'generating') {
+      debugRecommendations.push("🔄 Currently generating discovery path - wait for completion");
+    } else {
+      debugRecommendations.push("⚠️ Unknown generation status - check quiz_data.status");
+    }
+
+    // Check environment
+    if (!process.env.DEEPSEEK_API_KEY) {
+      debugRecommendations.push("❌ DEEPSEEK_API_KEY missing in environment");
+    }
+
+    // Check data consistency
+    if (researchData && klassenarbeit.quiz_data?.status === 'failed') {
+      debugRecommendations.push("💡 Research successful but discovery generation failed - likely create-discovery-path issue");
+    }
+
     return NextResponse.json({
       success: true,
       subdomain,
       timestamp: new Date().toISOString(),
       analysis,
-      debug_recommendations: [
-        klassenarbeit.research_status !== 'completed' ? "Research not completed - check DeepSeek API" : null,
-        klassenarbeit.quiz_generation_status !== 'completed' ? "Quiz generation not completed" : null,
-        !klassenarbeit.research_data ? "No research data found - DeepSeek may have failed" : null,
-        !process.env.DEEPSEEK_API_KEY ? "DEEPSEEK_API_KEY missing in environment" : null
-      ].filter(Boolean)
+      debug_recommendations: debugRecommendations
     })
 
   } catch (error) {
