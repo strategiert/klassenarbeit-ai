@@ -1,19 +1,26 @@
 // Supabase Admin SDK für automatische Datenbank-Operationen
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+// Only create admin client if we have the keys
+const hasAdminAccess = supabaseUrl && supabaseServiceKey
 
 // Admin client mit Service Role Key - kann ALLES!
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+export const supabaseAdmin = hasAdminAccess ? createClient(supabaseUrl!, supabaseServiceKey!, {
   auth: {
     autoRefreshToken: false,
     persistSession: false
   }
-})
+}) : null
 
 // Database Schema Management
 export async function createAdvancedTables() {
+  if (!supabaseAdmin) {
+    return { success: false, error: 'Admin access not available' }
+  }
+  
   console.log('🏗️ Setting up advanced database schema...')
   
   try {
@@ -255,6 +262,10 @@ export async function createAdvancedTables() {
 
 // Row Level Security Policies
 export async function setupAdvancedSecurity() {
+  if (!supabaseAdmin) {
+    return { success: false, error: 'Admin access not available' }
+  }
+  
   console.log('🔒 Setting up advanced security policies...')
   
   const securitySQL = `
@@ -337,6 +348,10 @@ export async function setupAdvancedSecurity() {
 
 // Create default achievements
 export async function createDefaultAchievements() {
+  if (!supabaseAdmin) {
+    return { success: false, error: 'Admin access not available' }
+  }
+  
   console.log('🏆 Creating default achievements...')
   
   const achievements = [
@@ -413,6 +428,10 @@ export async function createDefaultAchievements() {
 
 // Execute SQL directly
 export async function execSQL(sql: string) {
+  if (!supabaseAdmin) {
+    return { success: false, error: 'Admin access not available' }
+  }
+  
   try {
     const { data, error } = await supabaseAdmin.rpc('exec_sql', { sql })
     if (error) throw error
