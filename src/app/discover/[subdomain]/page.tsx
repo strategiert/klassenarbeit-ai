@@ -31,8 +31,8 @@ export default async function DiscoveryPage({ params }: DiscoveryPageProps) {
 
   const discoveryPath = discoveryData.quiz_data
   
-  // Get theme for dynamic styling
-  const theme = getSubjectTheme(discoveryData.content || '', discoveryPath.title)
+  // Get theme for dynamic styling (with safe fallback)
+  const theme = getSubjectTheme(discoveryData.content || '', discoveryPath?.title || '')
 
   return (
     <div className={`min-h-screen bg-gradient-to-br ${theme.backgroundGradient}`}>
@@ -42,9 +42,9 @@ export default async function DiscoveryPage({ params }: DiscoveryPageProps) {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                {theme.headerIcon} {discoveryPath.title}
+                {theme.headerIcon} {discoveryPath?.title || 'Lernreise'}
               </h1>
-              <p className="text-gray-600 mt-1">{discoveryPath.description}</p>
+              <p className="text-gray-600 mt-1">{discoveryPath?.description || ''}</p>
             </div>
             <div className="flex items-center space-x-4 text-sm text-gray-500">
               <span className="flex items-center">

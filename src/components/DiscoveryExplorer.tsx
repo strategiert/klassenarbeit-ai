@@ -11,8 +11,8 @@ interface DiscoveryExplorerProps {
 }
 
 export default function DiscoveryExplorer({ discoveryPath, pathId, content }: DiscoveryExplorerProps) {
-  // Get theme based on content and title
-  const theme = getSubjectTheme(content || '', discoveryPath.title)
+  // Get theme based on content and title (with safe fallback)
+  const theme = getSubjectTheme(content || '', discoveryPath?.title || '')
   
   const [currentObjective, setCurrentObjective] = useState<string | null>(null)
   const [currentStation, setCurrentStation] = useState<string | null>(null)
