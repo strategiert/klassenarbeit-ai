@@ -36,8 +36,7 @@ async function generateSubdomain(title: string): Promise<string> {
 
 async function performResearch(topic: string, content: string): Promise<ResearchResult> {
   const client = new OpenAI({
-    apiKey: process.env.DEEPSEEK_API_KEY,
-    baseURL: 'https://api.deepseek.com'
+    apiKey: process.env.OPENAI_API_KEY
   })
 
   const prompt = `Du bist ein Experte für Bildungsinhalte und Klassenarbeitsvorbereitung. 
@@ -82,13 +81,13 @@ Antworte AUSSCHLIESSLICH mit diesem JSON-Format:
 }`
 
   try {
-    console.log('🧠 Calling DeepSeek-Reasoner for comprehensive research...')
+    console.log('🧠 Calling GPT-4.1 nano for comprehensive research...')
     console.log('📝 Topic:', topic.substring(0, 50), '...')
     console.log('📄 Content length:', content?.length || 0)
-    console.log('🔑 API Key configured:', !!process.env.DEEPSEEK_API_KEY)
+    console.log('🔑 OpenAI API Key configured:', !!process.env.OPENAI_API_KEY)
     
     const response = await client.chat.completions.create({
-      model: 'deepseek-chat',
+      model: 'gpt-4.1-nano-2025-04-14', // Using GPT-4.1 nano for testing
       messages: [
         {
           role: 'user',
@@ -98,32 +97,29 @@ Antworte AUSSCHLIESSLICH mit diesem JSON-Format:
       max_tokens: 8000,
       temperature: 0.7,
       response_format: { type: 'json_object' }
+    }, {
+      timeout: 15000 // 15 second timeout for GPT-4.1 nano
     })
 
-    const reasoning = response.choices[0].message.reasoning_content
     const responseContent = response.choices[0].message.content
     
-    console.log('✅ DeepSeek research completed')
+    console.log('✅ GPT-4.1 nano research completed')
     console.log('📊 Response length:', responseContent?.length || 0)
-    console.log('🧠 Has reasoning:', !!reasoning)
     
     let researchJson: ResearchResult
     try {
       researchJson = JSON.parse(responseContent || '{}')
-      if (reasoning) {
-        researchJson.reasoning_process = reasoning
-      }
     } catch (parseError) {
       console.error('JSON parse error:', parseError)
-      throw new Error('Invalid JSON response from DeepSeek')
+      throw new Error('Invalid JSON response from GPT-4.1 nano')
     }
     
     return researchJson
   } catch (error) {
-    console.error('❌ DeepSeek API error:', error)
-    
-    // Fallback research data
-    return {
+    console.error('❌ GPT-4.1 nano API error:', error)
+      
+      // Last resort: basic fallback data
+      return {
       summary: `Das Thema "${topic}" ist ein wichtiger Bestandteil des Lehrplans und erfordert eine systematische Vorbereitung für die Klassenarbeit.`,
       key_facts: [
         'Grundlegende Konzepte verstehen',
@@ -159,6 +155,7 @@ Antworte AUSSCHLIESSLICH mit diesem JSON-Format:
       ],
       additional_topics: ['Verwandte Themen', 'Weiterführende Inhalte']
     }
+    } // End of OpenAI fallback catch
   }
 }
 
@@ -188,7 +185,7 @@ async function performAsyncResearch(klassenarbeitId: string, title: string, cont
         await supabase
           .from('klassenarbeiten')
           .update({ 
-            quiz_data: { status: 'researching', progress: 30 + (retryCount * 20), step: 'DeepSeek AI analysiert...' }
+            quiz_data: { status: 'researching', progress: 30 + (retryCount * 20), step: 'GPT-4.1 nano analysiert...' }
           })
           .eq('id', klassenarbeitId)
 
@@ -198,23 +195,19 @@ async function performAsyncResearch(klassenarbeitId: string, title: string, cont
         retryCount++
         console.log(`🔄 Research attempt ${retryCount} failed:`, error.message)
         
-        // DeepSeek-specific error handling
+        // OpenAI GPT-4.1 nano error handling
         if (error.status === 429) {
-          // Rate limit - longer wait
-          console.log('⚠️ DeepSeek rate limit hit, waiting longer...')
-          await new Promise(resolve => setTimeout(resolve, retryCount * 10000)) // 10s, 20s, 30s
+          // Rate limit - wait
+          console.log('⚠️ OpenAI rate limit hit, waiting...')
+          await new Promise(resolve => setTimeout(resolve, retryCount * 5000)) // 5s, 10s, 15s
         } else if (error.status === 503) {
           // Server overloaded - exponential backoff
-          console.log('⚠️ DeepSeek server overloaded, backing off...')
-          await new Promise(resolve => setTimeout(resolve, retryCount * 5000)) // 5s, 10s, 15s
-        } else if (error.status === 402) {
-          // Insufficient balance - don't retry
-          console.log('❌ DeepSeek insufficient balance - check account')
-          throw new Error('DeepSeek API balance insufficient. Please check your account.')
-        } else if (error.code === 'ETIMEDOUT') {
-          // Timeout - with 180s this shouldn't happen, but just in case
-          console.log('⚠️ DeepSeek timeout - content might be too complex')
-          await new Promise(resolve => setTimeout(resolve, retryCount * 3000))
+          console.log('⚠️ OpenAI server overloaded, backing off...')
+          await new Promise(resolve => setTimeout(resolve, retryCount * 3000)) // 3s, 6s, 9s
+        } else if (error.code === 'ETIMEDOUT' || error.code === 'ECONNABORTED') {
+          // Timeout - retry with longer timeout
+          console.log('⚠️ OpenAI timeout - retrying...')
+          await new Promise(resolve => setTimeout(resolve, retryCount * 2000))
         } else {
           // Generic error - shorter wait
           await new Promise(resolve => setTimeout(resolve, retryCount * 2000))
