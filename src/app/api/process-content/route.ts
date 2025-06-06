@@ -261,11 +261,19 @@ async function performAsyncResearch(klassenarbeitId: string, title: string, cont
   } catch (error) {
     console.error('Async research failed:', error)
     
-    // Mark as failed - store error in quiz_data for compatibility
+    // Get existing data to preserve research_data if it exists
+    const { data: existing } = await supabase
+      .from('klassenarbeiten')
+      .select('quiz_data')
+      .eq('id', klassenarbeitId)
+      .single()
+    
+    // Mark as failed but preserve research data if it exists
     await supabase
       .from('klassenarbeiten')
       .update({
         quiz_data: { 
+          ...(existing?.quiz_data?.research_data ? { research_data: existing.quiz_data.research_data } : {}),
           status: 'failed', 
           error: error instanceof Error ? error.message : 'Unbekannter Fehler', 
           step: 'Fehler aufgetreten',

@@ -43,9 +43,12 @@ export async function POST(request: NextRequest) {
     let finalSubdomain = subdomain
     
     if (klassenarbeitId && subdomain) {
-      // Update existing database entry
+      // Update existing database entry with fallback strategy
       console.log('📝 Updating existing klassenarbeit with discovery path...')
-      const updateResult = await supabase
+      console.log('🔍 Using ID:', klassenarbeitId, 'Subdomain:', subdomain)
+      
+      // First try to update by ID
+      let updateResult = await supabase
         .from('klassenarbeiten')
         .update({
           quiz_data: {
@@ -58,6 +61,34 @@ export async function POST(request: NextRequest) {
         .eq('id', klassenarbeitId)
         .select()
         .single()
+      
+      // If update by ID fails, try by subdomain as fallback
+      if (updateResult.error) {
+        console.log('⚠️ Update by ID failed, trying subdomain fallback...')
+        console.log('❌ ID Error:', updateResult.error)
+        
+        updateResult = await supabase
+          .from('klassenarbeiten')
+          .update({
+            quiz_data: {
+              type: 'discovery_path', 
+              status: 'completed',
+              completed_at: new Date().toISOString(),
+              ...discoveryPath
+            }
+          })
+          .eq('subdomain', subdomain)
+          .select()
+          .single()
+          
+        if (updateResult.error) {
+          console.log('❌ Subdomain fallback also failed:', updateResult.error)
+        } else {
+          console.log('✅ Subdomain fallback successful!')
+        }
+      } else {
+        console.log('✅ Update by ID successful!')
+      }
       
       data = updateResult.data
       error = updateResult.error
