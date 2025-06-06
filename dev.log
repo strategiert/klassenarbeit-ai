@@ -8,24 +8,63 @@
    - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 1243ms
- ○ Compiling /api/process-content ...
- ✓ Compiled /api/process-content in 1205ms
- ⨯ ./src/app/api/process-content/route.ts:2:1
-Export createClient doesn't exist in target module
-[0m [90m 1 |[39m [36mimport[39m { [33mNextRequest[39m[33m,[39m [33mNextResponse[39m } [36mfrom[39m [32m'next/server'[39m[0m
-[0m[31m[1m>[22m[39m[90m 2 |[39m [36mimport[39m { createClient } [36mfrom[39m [32m'@/lib/supabase-admin'[39m[0m
-[0m [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[0m
-[0m [90m 3 |[39m [36mimport[39m { [33mOpenAI[39m } [36mfrom[39m [32m'openai'[39m[0m
-[0m [90m 4 |[39m[0m
-[0m [90m 5 |[39m [36minterface[39m [33mResearchResult[39m {[0m
-
-The export createClient was not found in module [project]/src/lib/supabase-admin.ts [app-route] (ecmascript).
-Did you mean to import createDefaultAchievements?
-All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
-
-
- ○ Compiling /_error ...
- ✓ Compiled /_error in 1096ms
- POST /api/process-content 500 in 2466ms
-[?25h
+ ✓ Ready in 714ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1236ms
+ GET / 200 in 1400ms
+ ✓ Compiled /api/admin/execute-sql in 359ms
+🔧 Executing SQL: SELECT subdomain, research_status, quiz_generation_status, research_completed_at, quiz_completed_at,...
+❌ SQL execution error: {
+  code: 'PGRST202',
+  details: 'Searched for the function public.exec_sql with parameter sql or with a single unnamed json/jsonb parameter, but no matches were found in the schema cache.',
+  hint: null,
+  message: 'Could not find the function public.exec_sql(sql) in the schema cache'
+}
+ POST /api/admin/execute-sql 200 in 509ms
+ ✓ Compiled /api/debug/[subdomain] in 278ms
+ GET /api/debug/hase-u4u24u 200 in 622ms
+ ✓ Compiled /api/status/[subdomain] in 308ms
+ GET /api/status/hase-u4u24u 202 in 649ms
+ ✓ Compiled /api/generate-quiz in 329ms
+📝 Quiz generation API request received
+🤖 Generating quiz from research data...
+Quiz update error: {
+  code: 'PGRST204',
+  details: null,
+  hint: null,
+  message: "Could not find the 'quiz_completed_at' column of 'klassenarbeiten' in the schema cache"
+}
+ POST /api/generate-quiz 500 in 543ms
+ GET /api/status/hase-u4u24u 202 in 152ms
+📝 Quiz generation API request received
+🤖 Generating quiz from research data...
+✅ Quiz generated successfully from research data
+ POST /api/generate-quiz 200 in 179ms
+ GET /api/status/hase-u4u24u 202 in 64ms
+ GET /api/debug/hase-u4u24u 200 in 106ms
+ GET /api/status/hase-u4u24u 200 in 144ms
+ ○ Compiling /quiz/[subdomain] ...
+ ✓ Compiled /quiz/[subdomain] in 560ms
+ ⨯ Error: Event handlers cannot be passed to Client Component props.
+  <button onClick={function onClick} className=... children=...>
+                  ^^^^^^^^^^^^^^^^^^
+If you need interactivity, consider converting part of this to a Client Component.
+    at stringify (<anonymous>)
+    at stringify (<anonymous>) {
+  digest: '1979216444'
+}
+ HEAD /quiz/hase-u4u24u 200 in 1034ms
+ ⨯ Error [TypeError]: Cannot read properties of undefined (reading 'title')
+    at Module.generateMetadata (src/app/quiz/[subdomain]/page.tsx:192:26)
+    at JSON.parse (<anonymous>)
+  190 |
+  191 |   return {
+> 192 |     title: quiz.quiz_data.title,
+      |                          ^
+  193 |     description: quiz.quiz_data.description,
+  194 |   }
+  195 | } {
+  environmentName: 'Server',
+  digest: '3096723785'
+}
+ ✓ Compiled in 153ms

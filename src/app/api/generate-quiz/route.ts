@@ -126,11 +126,13 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Update status to processing
-    await supabase
-      .from('klassenarbeiten')
-      .update({ quiz_generation_status: 'processing' })
-      .eq('id', klassenarbeit.id)
+    // Update status to processing (only if status column exists)
+    if (klassenarbeit.quiz_generation_status !== undefined) {
+      await supabase
+        .from('klassenarbeiten')
+        .update({ quiz_generation_status: 'processing' })
+        .eq('id', klassenarbeit.id)
+    }
 
     console.log('🤖 Generating quiz from research data...')
     
@@ -139,26 +141,36 @@ export async function POST(request: NextRequest) {
       const quizData = await convertResearchToQuiz(researchData, klassenarbeit.title)
       
       // Update database with quiz data
+      const updateData = {
+        quiz_data: quizData,
+        is_active: true
+      }
+      
+      // Only add status fields if they exist in the table
+      if (klassenarbeit.quiz_generation_status !== undefined) {
+        updateData.quiz_generation_status = 'completed'
+      }
+      if (klassenarbeit.quiz_completed_at !== undefined) {
+        updateData.quiz_completed_at = new Date().toISOString()
+      }
+      
       const { error: updateError } = await supabase
         .from('klassenarbeiten')
-        .update({
-          quiz_data: quizData,
-          quiz_generation_status: 'completed',
-          quiz_completed_at: new Date().toISOString(),
-          is_active: true
-        })
+        .update(updateData)
         .eq('id', klassenarbeit.id)
 
       if (updateError) {
         console.error('Quiz update error:', updateError)
         
-        // Mark as failed
+        // Mark as failed (only update status if column exists)
+        const failedUpdateData = { error_message: 'Fehler beim Speichern der Quiz-Daten' }
+        if (klassenarbeit.quiz_generation_status !== undefined) {
+          failedUpdateData.quiz_generation_status = 'failed'
+        }
+        
         await supabase
           .from('klassenarbeiten')
-          .update({
-            quiz_generation_status: 'failed',
-            error_message: 'Fehler beim Speichern der Quiz-Daten'
-          })
+          .update(failedUpdateData)
           .eq('id', klassenarbeit.id)
           
         return NextResponse.json(
@@ -186,13 +198,17 @@ export async function POST(request: NextRequest) {
     } catch (quizError) {
       console.error('Quiz generation error:', quizError)
       
-      // Mark quiz generation as failed
+      // Mark quiz generation as failed (only update status if column exists)
+      const errorUpdateData = { 
+        error_message: quizError instanceof Error ? quizError.message : 'Unbekannter Fehler' 
+      }
+      if (klassenarbeit.quiz_generation_status !== undefined) {
+        errorUpdateData.quiz_generation_status = 'failed'
+      }
+      
       await supabase
         .from('klassenarbeiten')
-        .update({
-          quiz_generation_status: 'failed',
-          error_message: quizError instanceof Error ? quizError.message : 'Unbekannter Fehler'
-        })
+        .update(errorUpdateData)
         .eq('id', klassenarbeit.id)
         
       return NextResponse.json(

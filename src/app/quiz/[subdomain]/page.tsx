@@ -188,8 +188,15 @@ export async function generateMetadata({ params }: QuizPageProps) {
     }
   }
 
+  if (!quiz.quiz_data) {
+    return {
+      title: quiz.title || 'Quiz',
+      description: 'Quiz wird noch generiert...',
+    }
+  }
+
   return {
-    title: quiz.quiz_data.title,
-    description: quiz.quiz_data.description,
+    title: quiz.quiz_data.title || quiz.title || 'Quiz',
+    description: quiz.quiz_data.description || 'Interaktives Quiz',
   }
 }

@@ -34,12 +34,40 @@ export async function GET(
     const hasStatusFields = klassenarbeit.research_status !== undefined && klassenarbeit.quiz_generation_status !== undefined
     
     if (!hasStatusFields) {
-      // If no status fields, check quiz_data to determine completion
-      const isCompleted = klassenarbeit.quiz_data && 
+      // Check if final quiz is available (with questions array)
+      const hasFinalQuiz = klassenarbeit.quiz_data && 
         (klassenarbeit.quiz_data.questions?.length > 0 || klassenarbeit.quiz_data.stations?.length > 0)
       
-      if (!isCompleted) {
-        // Return processing status instead of 404
+      // If we have a final quiz, everything is completed
+      if (hasFinalQuiz) {
+        return NextResponse.json({
+          success: true,
+          id: klassenarbeit.id,
+          subdomain: subdomain,
+          title: klassenarbeit.title,
+          status: 'completed',
+          stages: [
+            { name: 'research', label: 'DeepSeek AI Forschung', status: 'completed', progress: 100 },
+            { name: 'generation', label: 'Lernwelt Generierung', status: 'completed', progress: 100 }
+          ],
+          progress: { current: 100, step: 'Fertig!', elapsed_time: { minutes: 0, seconds: 0, total_seconds: 0 }, estimated_remaining_minutes: 0 },
+          is_active: klassenarbeit.is_active,
+          ready_for_quiz: true,
+          redirect_url: `/quiz/${subdomain}`,
+          debug_info: {
+            fallback_mode: true,
+            quiz_completed: true,
+            questions_count: klassenarbeit.quiz_data.questions?.length || 0
+          }
+        })
+      }
+      
+      // Check if research is completed and quiz should be generated
+      const hasResearchData = klassenarbeit.quiz_data?.research_data || klassenarbeit.research_data
+      const researchCompleted = klassenarbeit.quiz_data?.status === 'completed' || !!hasResearchData
+      
+      if (!researchCompleted) {
+        // Still researching
         return NextResponse.json({
           success: true,
           id: klassenarbeit.id,
@@ -47,17 +75,43 @@ export async function GET(
           title: klassenarbeit.title,
           status: 'processing',
           stages: [
-            { name: 'research', label: 'DeepSeek AI Forschung', status: 'processing', progress: 50 },
+            { name: 'research', label: 'DeepSeek AI Forschung', status: 'processing', progress: 30 },
             { name: 'generation', label: 'Lernwelt Generierung', status: 'pending', progress: 0 }
           ],
-          progress: { current: 50, step: 'KI analysiert Inhalt...', elapsed_time: { minutes: 0, seconds: 0, total_seconds: 0 }, estimated_remaining_minutes: 2 },
+          progress: { current: 30, step: 'KI analysiert Inhalt...', elapsed_time: { minutes: 0, seconds: 0, total_seconds: 0 }, estimated_remaining_minutes: 2 },
           is_active: klassenarbeit.is_active,
           ready_for_quiz: false,
           redirect_url: null,
           debug_info: {
             fallback_mode: true,
-            has_quiz_data: !!klassenarbeit.quiz_data,
-            quiz_data_status: klassenarbeit.quiz_data?.status || 'unknown'
+            has_research_data: !!hasResearchData,
+            research_completed: researchCompleted,
+            has_final_quiz: hasFinalQuiz
+          }
+        }, { status: 202 })
+      }
+      
+      if (researchCompleted && !hasFinalQuiz) {
+        // Research done, need to trigger quiz generation
+        return NextResponse.json({
+          success: true,
+          id: klassenarbeit.id,
+          subdomain: subdomain,
+          title: klassenarbeit.title,
+          status: 'processing',
+          stages: [
+            { name: 'research', label: 'DeepSeek AI Forschung', status: 'completed', progress: 100 },
+            { name: 'generation', label: 'Lernwelt Generierung', status: 'processing', progress: 50 }
+          ],
+          progress: { current: 80, step: 'Generiere interaktive Lernwelt...', elapsed_time: { minutes: 0, seconds: 0, total_seconds: 0 }, estimated_remaining_minutes: 1 },
+          is_active: klassenarbeit.is_active,
+          ready_for_quiz: false,
+          redirect_url: null,
+          debug_info: {
+            fallback_mode: true,
+            has_research_data: !!hasResearchData,
+            research_completed: researchCompleted,
+            needs_quiz_generation: true
           }
         }, { status: 202 })
       }
