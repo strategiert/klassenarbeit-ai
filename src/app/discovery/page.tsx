@@ -23,14 +23,23 @@ function DiscoveryContent() {
         setProgress(20)
         setCurrentStep('🔍 Deep Research läuft...')
         
-        const researchResponse = await fetch('/api/research', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, content })
-        })
+        let researchData = { enhancedContent: content }
         
-        if (!researchResponse.ok) throw new Error('Research failed')
-        const researchData = await researchResponse.json()
+        try {
+          const researchResponse = await fetch('/api/research', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, content })
+          })
+          
+          if (researchResponse.ok) {
+            researchData = await researchResponse.json()
+          } else {
+            console.log('⚠️ Research failed, using original content')
+          }
+        } catch (researchError) {
+          console.log('⚠️ Research error, continuing with original content:', researchError)
+        }
         
         // Step 2: Discovery Path generieren
         setProgress(60)

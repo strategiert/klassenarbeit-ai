@@ -100,20 +100,29 @@ Antworte im folgenden JSON-Format:
 
 export async function POST(request: NextRequest) {
   try {
-    const { topic } = await request.json()
+    const { topic, title, content } = await request.json()
+    
+    // Use title if topic is not provided (backward compatibility)
+    const researchTopic = topic || title || 'Unbekanntes Thema'
 
-    if (!topic) {
+    if (!researchTopic) {
       return NextResponse.json(
         { error: 'Thema ist erforderlich' },
         { status: 400 }
       )
     }
 
-    const researchData = await callPerplexityAPI(topic)
+    const researchData = await callPerplexityAPI(researchTopic)
     
+    // Enhanced content combining original with research
+    const enhancedContent = content ? 
+      `${content}\n\nZusätzliche Recherche-Erkenntnisse:\n${researchData.summary}\n\nWichtige Fakten:\n${researchData.key_facts.join('\n- ')}` 
+      : researchData.summary
+
     return NextResponse.json({
       success: true,
-      research: researchData
+      research: researchData,
+      enhancedContent: enhancedContent
     })
 
   } catch (error) {
