@@ -88,7 +88,7 @@ Antworte AUSSCHLIESSLICH mit diesem JSON-Format:
     console.log('🔑 API Key configured:', !!process.env.DEEPSEEK_API_KEY)
     
     const response = await client.chat.completions.create({
-      model: 'deepseek-reasoner',
+      model: 'deepseek-chat',
       messages: [
         {
           role: 'user',
@@ -96,19 +96,20 @@ Antworte AUSSCHLIESSLICH mit diesem JSON-Format:
         }
       ],
       max_tokens: 8000,
+      temperature: 0.7,
       response_format: { type: 'json_object' }
     })
 
     const reasoning = response.choices[0].message.reasoning_content
-    const content = response.choices[0].message.content
+    const responseContent = response.choices[0].message.content
     
     console.log('✅ DeepSeek research completed')
-    console.log('📊 Response length:', content?.length || 0)
+    console.log('📊 Response length:', responseContent?.length || 0)
     console.log('🧠 Has reasoning:', !!reasoning)
     
     let researchJson: ResearchResult
     try {
-      researchJson = JSON.parse(content || '{}')
+      researchJson = JSON.parse(responseContent || '{}')
       if (reasoning) {
         researchJson.reasoning_process = reasoning
       }
@@ -166,11 +167,10 @@ async function performAsyncResearch(klassenarbeitId: string, title: string, cont
   const supabase = createClient()
   
   try {
-    // Update status to processing
+    // Update status to processing - use only quiz_data for compatibility
     await supabase
       .from('klassenarbeiten')
-      .update({ 
-        research_status: 'processing',
+      .update({
         quiz_data: { status: 'researching', progress: 10, step: 'Analysiere Inhalte...' }
       })
       .eq('id', klassenarbeitId)
@@ -207,14 +207,17 @@ async function performAsyncResearch(klassenarbeitId: string, title: string, cont
       }
     }
 
-    // Update with research results
+    // Update with research results - store everything in quiz_data for compatibility
     await supabase
       .from('klassenarbeiten')
       .update({
-        research_data: researchData,
-        research_status: 'completed',
-        research_completed_at: new Date().toISOString(),
-        quiz_data: { status: 'generating', progress: 70, step: 'Erstelle Lernwelt...' }
+        quiz_data: { 
+          status: 'generating', 
+          progress: 70, 
+          step: 'Erstelle Lernwelt...',
+          research_data: researchData,
+          research_completed_at: new Date().toISOString()
+        }
       })
       .eq('id', klassenarbeitId)
 
@@ -258,13 +261,16 @@ async function performAsyncResearch(klassenarbeitId: string, title: string, cont
   } catch (error) {
     console.error('Async research failed:', error)
     
-    // Mark as failed
+    // Mark as failed - store error in quiz_data for compatibility
     await supabase
       .from('klassenarbeiten')
       .update({
-        research_status: 'failed',
-        error_message: error instanceof Error ? error.message : 'Unbekannter Fehler',
-        quiz_data: { status: 'failed', error: error.message, step: 'Fehler aufgetreten' }
+        quiz_data: { 
+          status: 'failed', 
+          error: error instanceof Error ? error.message : 'Unbekannter Fehler', 
+          step: 'Fehler aufgetreten',
+          failed_at: new Date().toISOString()
+        }
       })
       .eq('id', klassenarbeitId)
   }
@@ -286,7 +292,7 @@ export async function POST(request: NextRequest) {
     // Generate unique subdomain
     const subdomain = await generateSubdomain(title)
     
-    // Create initial database entry with pending status
+    // Create initial database entry - use only basic columns that definitely exist
     const { data: klassenarbeit, error: insertError } = await supabase
       .from('klassenarbeiten')
       .insert({
@@ -294,8 +300,6 @@ export async function POST(request: NextRequest) {
         content,
         teacher_id: teacherId || 'anonymous',
         subdomain,
-        research_status: 'pending',
-        quiz_generation_status: 'pending',
         quiz_data: { status: 'pending', type: mode || 'quiz', started_at: new Date().toISOString() }
       })
       .select()

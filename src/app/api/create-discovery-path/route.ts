@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
           },
           // Ensure status fields are set correctly
           quiz_generation_status: 'completed',
-          quiz_generated_at: new Date().toISOString()
+          quiz_completed_at: new Date().toISOString()
         })
         .eq('id', klassenarbeitId)
         .select()
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
           research_status: 'completed',
           quiz_generation_status: 'completed',
           research_completed_at: new Date().toISOString(),
-          quiz_generated_at: new Date().toISOString()
+          quiz_completed_at: new Date().toISOString()
         })
         .select()
         .single()

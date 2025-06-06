@@ -41,3 +41,98 @@ Research update error: {
 }
 Failed to save research data, continuing with fallback
  POST /api/process-content 200 in 41302ms
+ ○ Compiling /api/admin/execute-sql ...
+ ✓ Compiled /api/admin/execute-sql in 506ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.ivrqfts24bl'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.ivrqfts24bl'
+}
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 679ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.ar5rchah7ke'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.ar5rchah7ke'
+}
+[Error: ENOENT: no such file or directory, open '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.ivrqfts24bl'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.ivrqfts24bl'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.a8igql7ieed'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.a8igql7ieed'
+}
+[Error: ENOENT: no such file or directory, open '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.2ew27hilvcc'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.2ew27hilvcc'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.ry2lp4jhkqj'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.ry2lp4jhkqj'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.phb27y0eyfs'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.phb27y0eyfs'
+}
+[Error: ENOENT: no such file or directory, open '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.ry2lp4jhkqj'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.ry2lp4jhkqj'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.iewoe7fzzqc'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.iewoe7fzzqc'
+}
+[Error: ENOENT: no such file or directory, open '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.nma8iwl7ikm'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.nma8iwl7ikm'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/server/app/api/process-content/[__metadata_id__]/route/app-paths-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/server/app/api/process-content/[__metadata_id__]/route/app-paths-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.mthxp8fq6zp'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.mthxp8fq6zp'
+}
+[Error: ENOENT: no such file or directory, open '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/server/app/api/process-content/[__metadata_id__]/route/app-paths-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/server/app/api/process-content/[__metadata_id__]/route/app-paths-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.6bb96ls46x'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.6bb96ls46x'
+}
+[Error: ENOENT: no such file or directory, open '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.n6yhnrr04mk'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/home/nimda/dev/claude-playground/klassenarbeit-ai/.next/static/development/_buildManifest.js.tmp.n6yhnrr04mk'
+}
+[?25h

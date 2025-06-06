@@ -1,0 +1,158 @@
+
+> klassenarbeit-ai@0.1.0 dev
+> next dev --turbopack
+
+   ▲ Next.js 15.3.3 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://10.255.255.254:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 844ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1349ms
+ GET / 200 in 1528ms
+ ✓ Compiled /favicon.ico in 307ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 544ms
+ ✓ Compiled /api/process-content in 463ms
+Database insert error: {
+  code: 'PGRST204',
+  details: null,
+  hint: null,
+  message: "Could not find the 'quiz_generation_status' column of 'klassenarbeiten' in the schema cache"
+}
+ POST /api/process-content 500 in 825ms
+ ✓ Compiled /_not-found/page in 474ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 519ms
+Database insert error: {
+  code: 'PGRST204',
+  details: null,
+  hint: null,
+  message: "Could not find the 'quiz_generation_status' column of 'klassenarbeiten' in the schema cache"
+}
+ POST /api/process-content 500 in 192ms
+🔬 Starting async research process for 41bf0b8d-5d09-475c-92bc-02a9ece51599
+ POST /api/process-content 200 in 208ms
+🧠 Starting deep research for 41bf0b8d-5d09-475c-92bc-02a9ece51599
+🧠 Calling DeepSeek-Reasoner for comprehensive research...
+📝 Topic: Religion 8 Klasse ...
+❌ DeepSeek API error: ReferenceError: Cannot access 'content' before initialization
+    at performResearch (src/app/api/process-content/route.ts:87:38)
+    at performAsyncResearch (src/app/api/process-content/route.ts:205:29)
+  85 |     console.log('🧠 Calling DeepSeek-Reasoner for comprehensive research...')
+  86 |     console.log('📝 Topic:', topic.substring(0, 50), '...')
+> 87 |     console.log('📄 Content length:', content.length)
+     |                                      ^
+  88 |     console.log('🔑 API Key configured:', !!process.env.DEEPSEEK_API_KEY)
+  89 |     
+  90 |     const response = await client.chat.completions.create({
+✅ Research completed for 41bf0b8d-5d09-475c-92bc-02a9ece51599
+ ✓ Compiled /api/status/[subdomain] in 310ms
+Async research failed: TypeError: fetch failed
+    at async performAsyncResearch (src/app/api/process-content/route.ts:252:23)
+  250 |     
+  251 |     if (mode === 'discovery') {
+> 252 |       const response = await fetch(`${appUrl}/api/create-discovery-path`, {
+      |                       ^
+  253 |         method: 'POST',
+  254 |         headers: { 'Content-Type': 'application/json' },
+  255 |         body: JSON.stringify({ {
+  [cause]: Error: connect ECONNREFUSED 127.0.0.1:8080
+      at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:8080) {
+    errno: -111,
+    code: 'ECONNREFUSED',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 8080
+  }
+}
+ GET /api/status/religion-8-klasse-ugofv1 404 in 716ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 71ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 91ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 97ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 120ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 84ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 69ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 89ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 77ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 81ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 84ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 76ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 83ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 69ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 225ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 81ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 74ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 63ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 103ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 70ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 77ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 72ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 65ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 64ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 95ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 67ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 65ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 70ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 79ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 72ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 63ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 64ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 89ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 81ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 61ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 63ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 75ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 75ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 58ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 75ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 92ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 63ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 106ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 71ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 92ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 124ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 79ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 69ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 70ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 65ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 76ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 80ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 118ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 69ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 69ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 75ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 72ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 71ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 70ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 73ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 64ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 77ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 70ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 64ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 74ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 86ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 221ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 88ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 68ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 67ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 67ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 68ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 75ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 64ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 67ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 62ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 63ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 69ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 83ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 64ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 78ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 73ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 70ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 83ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 63ms
+ GET /api/status/religion-8-klasse-ugofv1 404 in 75ms
+ GET / 200 in 68ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 221ms
+ GET /religion-8-klasse-ugofv1 404 in 32ms
+ GET /discovery/religion-8-klasse-ugofv1 404 in 30ms
