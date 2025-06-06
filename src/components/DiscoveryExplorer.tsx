@@ -141,9 +141,12 @@ export default function DiscoveryExplorer({ discoveryPath, pathId, content }: Di
                     }`}
                   >
                     <div className="flex items-start space-x-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${
-                        progress === 100 ? 'bg-green-500' : isUnlocked ? `bg-[${theme.primaryColor}]` : 'bg-gray-400'
-                      }`}>
+                      <div 
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${
+                          progress === 100 ? 'bg-green-500' : isUnlocked ? 'bg-blue-500' : 'bg-gray-400'
+                        }`}
+                        style={progress !== 100 && isUnlocked ? { backgroundColor: theme.primaryColor } : {}}
+                      >
                         {progress === 100 ? theme.visualElements.completedIcon : index + 1}
                       </div>
                       
