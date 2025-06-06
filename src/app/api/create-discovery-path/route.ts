@@ -47,7 +47,16 @@ export async function POST(request: NextRequest) {
       console.log('📝 Updating existing klassenarbeit with discovery path...')
       console.log('🔍 Using ID:', klassenarbeitId, 'Subdomain:', subdomain)
       
-      // First try to update by ID
+      // Get existing data to preserve research_data
+      const { data: existing } = await supabase
+        .from('klassenarbeiten')
+        .select('quiz_data')
+        .eq('id', klassenarbeitId)
+        .single()
+      
+      console.log('📚 Existing research_data found:', !!existing?.quiz_data?.research_data)
+      
+      // First try to update by ID - PRESERVE research_data
       let updateResult = await supabase
         .from('klassenarbeiten')
         .update({
@@ -55,7 +64,10 @@ export async function POST(request: NextRequest) {
             type: 'discovery_path',
             status: 'completed',
             completed_at: new Date().toISOString(),
-            ...discoveryPath
+            // ✅ PRESERVE existing research_data
+            ...(existing?.quiz_data?.research_data ? { research_data: existing.quiz_data.research_data } : {}),
+            // ✅ ADD discovery path data
+            discovery_path: discoveryPath
           }
         })
         .eq('id', klassenarbeitId)
@@ -67,6 +79,13 @@ export async function POST(request: NextRequest) {
         console.log('⚠️ Update by ID failed, trying subdomain fallback...')
         console.log('❌ ID Error:', updateResult.error)
         
+        // Get existing data for subdomain fallback too
+        const { data: existingBySubdomain } = await supabase
+          .from('klassenarbeiten')
+          .select('quiz_data')
+          .eq('subdomain', subdomain)
+          .single()
+        
         updateResult = await supabase
           .from('klassenarbeiten')
           .update({
@@ -74,7 +93,10 @@ export async function POST(request: NextRequest) {
               type: 'discovery_path', 
               status: 'completed',
               completed_at: new Date().toISOString(),
-              ...discoveryPath
+              // ✅ PRESERVE research_data in fallback too
+              ...(existingBySubdomain?.quiz_data?.research_data ? { research_data: existingBySubdomain.quiz_data.research_data } : {}),
+              // ✅ ADD discovery path data
+              discovery_path: discoveryPath
             }
           })
           .eq('subdomain', subdomain)

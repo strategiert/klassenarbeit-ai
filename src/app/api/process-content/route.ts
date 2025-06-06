@@ -196,14 +196,33 @@ async function performAsyncResearch(klassenarbeitId: string, title: string, cont
         break // Success - exit retry loop
       } catch (error) {
         retryCount++
-        console.log(`🔄 Research attempt ${retryCount} failed, retrying...`)
+        console.log(`🔄 Research attempt ${retryCount} failed:`, error.message)
+        
+        // DeepSeek-specific error handling
+        if (error.status === 429) {
+          // Rate limit - longer wait
+          console.log('⚠️ DeepSeek rate limit hit, waiting longer...')
+          await new Promise(resolve => setTimeout(resolve, retryCount * 10000)) // 10s, 20s, 30s
+        } else if (error.status === 503) {
+          // Server overloaded - exponential backoff
+          console.log('⚠️ DeepSeek server overloaded, backing off...')
+          await new Promise(resolve => setTimeout(resolve, retryCount * 5000)) // 5s, 10s, 15s
+        } else if (error.status === 402) {
+          // Insufficient balance - don't retry
+          console.log('❌ DeepSeek insufficient balance - check account')
+          throw new Error('DeepSeek API balance insufficient. Please check your account.')
+        } else if (error.code === 'ETIMEDOUT') {
+          // Timeout - with 180s this shouldn't happen, but just in case
+          console.log('⚠️ DeepSeek timeout - content might be too complex')
+          await new Promise(resolve => setTimeout(resolve, retryCount * 3000))
+        } else {
+          // Generic error - shorter wait
+          await new Promise(resolve => setTimeout(resolve, retryCount * 2000))
+        }
         
         if (retryCount >= maxRetries) {
           throw error
         }
-        
-        // Wait before retry (exponential backoff)
-        await new Promise(resolve => setTimeout(resolve, retryCount * 2000))
       }
     }
 
