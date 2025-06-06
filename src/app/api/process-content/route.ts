@@ -39,55 +39,44 @@ async function performResearch(topic: string, content: string): Promise<Research
     apiKey: process.env.OPENAI_API_KEY
   })
 
-  const prompt = `Du bist ein Experte für Bildungsinhalte und Klassenarbeitsvorbereitung. 
+  const prompt = `Du bist ein Experte für Bildungsinhalte. Erstelle für das Thema "${topic}" mit dem Inhalt "${content}" eine JSON-Antwort mit:
 
-THEMA: "${topic}"
-KLASSENARBEIT-INHALT: "${content}"
-
-Erstelle eine umfassende Lernressource mit folgenden Elementen:
-
-1. TIEFE ANALYSE des Themas für Schüler der 8.-12. Klasse
-2. 20-25 QUIZ-FRAGEN mit verschiedenen Schwierigkeitsgraden
-3. INTERAKTIVE ELEMENTE (Drag&Drop, Sortierung, etc.)
-4. DETAILLIERTE ERKLÄRUNGEN für besseres Verständnis
-
-Antworte AUSSCHLIESSLICH mit diesem JSON-Format:
 {
-  "summary": "Kompakte, schülergerechte Zusammenfassung (3-4 Sätze)",
-  "key_facts": ["10-15 wichtige Fakten als Bullet Points"],
-  "detailed_explanations": ["5-7 ausführliche Erklärungen zu Kernkonzepten"],
+  "summary": "Kurze Zusammenfassung",
+  "key_facts": ["Fakt 1", "Fakt 2", "Fakt 3"],
+  "detailed_explanations": ["Erklärung 1", "Erklärung 2"],
   "quiz_questions": [
     {
-      "question": "Präzise formulierte Frage",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "question": "Testfrage?",
+      "options": ["A", "B", "C", "D"],
       "correct": 0,
-      "explanation": "Warum diese Antwort richtig ist",
-      "difficulty": "beginner|intermediate|advanced"
+      "explanation": "Erklärung",
+      "difficulty": "beginner"
     }
   ],
   "interactive_elements": [
     {
-      "type": "drag_drop|sorting|matching|timeline",
-      "title": "Interaktives Element Titel",
-      "description": "Was soll der Schüler machen?",
-      "content": {
-        "items": ["Element 1", "Element 2"],
-        "categories": ["Kategorie A", "Kategorie B"],
-        "instructions": "Ziehe die Elemente in die richtige Reihenfolge"
-      }
+      "type": "sorting",
+      "title": "Test",
+      "description": "Test",
+      "content": {"items": ["Item 1"], "instructions": "Test"}
     }
   ],
-  "additional_topics": ["Verwandte Themen für Vertiefung"]
-}`
+  "additional_topics": ["Topic 1"]
+}
+
+Antworte NUR mit JSON, keine anderen Texte.`
 
   try {
-    console.log('🧠 Calling GPT-4.1 nano for comprehensive research...')
+    console.log('🧠 Calling GPT-4o-mini for comprehensive research...')
     console.log('📝 Topic:', topic.substring(0, 50), '...')
     console.log('📄 Content length:', content?.length || 0)
     console.log('🔑 OpenAI API Key configured:', !!process.env.OPENAI_API_KEY)
+    console.log('🔑 OpenAI API Key first 10 chars:', process.env.OPENAI_API_KEY?.substring(0, 10))
     
+    console.log('🚀 Starting OpenAI API call...')
     const response = await client.chat.completions.create({
-      model: 'gpt-4.1-nano-2025-04-14', // Using GPT-4.1 nano for testing
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'user',
@@ -95,28 +84,35 @@ Antworte AUSSCHLIESSLICH mit diesem JSON-Format:
         }
       ],
       max_tokens: 8000,
-      temperature: 0.7,
-      response_format: { type: 'json_object' }
-    }, {
-      timeout: 15000 // 15 second timeout for GPT-4.1 nano
+      temperature: 0.7
     })
+    console.log('🎉 OpenAI API call completed successfully!')
 
     const responseContent = response.choices[0].message.content
     
-    console.log('✅ GPT-4.1 nano research completed')
+    console.log('✅ GPT-4o-mini research completed')
     console.log('📊 Response length:', responseContent?.length || 0)
+    console.log('🔍 Response preview:', responseContent?.substring(0, 200) + '...')
     
     let researchJson: ResearchResult
     try {
       researchJson = JSON.parse(responseContent || '{}')
     } catch (parseError) {
       console.error('JSON parse error:', parseError)
-      throw new Error('Invalid JSON response from GPT-4.1 nano')
+      console.error('Raw response that failed to parse:', responseContent)
+      throw new Error('Invalid JSON response from GPT-4o-mini')
     }
     
     return researchJson
   } catch (error) {
-    console.error('❌ GPT-4.1 nano API error:', error)
+    console.error('❌ GPT-4o-mini API error:', error)
+    console.error('❌ Error details:', {
+      message: error.message,
+      status: error.status,
+      code: error.code,
+      type: error.type,
+      stack: error.stack?.substring(0, 500)
+    })
       
       // Last resort: basic fallback data
       return {
@@ -184,7 +180,7 @@ async function performAsyncResearch(klassenarbeitId: string, title: string, cont
         await supabase
           .from('klassenarbeiten')
           .update({ 
-            quiz_data: { status: 'researching', progress: 30 + (retryCount * 20), step: 'GPT-4.1 nano analysiert...' }
+            quiz_data: { status: 'researching', progress: 30 + (retryCount * 20), step: 'GPT-4o-mini analysiert...' }
           })
           .eq('id', klassenarbeitId)
 
@@ -194,7 +190,14 @@ async function performAsyncResearch(klassenarbeitId: string, title: string, cont
         retryCount++
         console.log(`🔄 Research attempt ${retryCount} failed:`, error.message)
         
-        // OpenAI GPT-4.1 nano error handling
+        // OpenAI GPT-4o-mini error handling
+        console.log('⚠️ OpenAI error details:', {
+          status: error.status,
+          message: error.message,
+          type: error.type,
+          code: error.code
+        })
+        
         if (error.status === 429) {
           // Rate limit - wait
           console.log('⚠️ OpenAI rate limit hit, waiting...')
