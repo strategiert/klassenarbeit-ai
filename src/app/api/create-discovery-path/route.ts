@@ -137,8 +137,8 @@ export async function POST(request: NextRequest) {
             completed_at: new Date().toISOString(),
             // ✅ PRESERVE existing research_data
             ...(existing?.quiz_data?.research_data ? { research_data: existing.quiz_data.research_data } : {}),
-            // ✅ ADD discovery path data
-            discovery_path: discoveryPath
+            // ✅ ADD discovery path data directly (not nested)
+            ...discoveryPath
           }
         })
         .eq('id', klassenarbeitId)
@@ -166,8 +166,8 @@ export async function POST(request: NextRequest) {
               completed_at: new Date().toISOString(),
               // ✅ PRESERVE research_data in fallback too
               ...(existingBySubdomain?.quiz_data?.research_data ? { research_data: existingBySubdomain.quiz_data.research_data } : {}),
-              // ✅ ADD discovery path data
-              discovery_path: discoveryPath
+              // ✅ ADD discovery path data directly (not nested)
+              ...discoveryPath
             }
           })
           .eq('subdomain', subdomain)

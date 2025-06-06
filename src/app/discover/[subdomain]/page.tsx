@@ -110,12 +110,12 @@ export default async function DiscoveryPage({ params }: DiscoveryPageProps) {
           </div>
           
           <div className="space-y-3">
-            <button
-              onClick={() => window.location.reload()}
-              className="w-full bg-purple-500 text-white py-3 px-6 rounded-lg font-medium hover:bg-purple-600 transition-colors"
+            <a
+              href={`/discover/${result.subdomain}`}
+              className="w-full bg-purple-500 text-white py-3 px-6 rounded-lg font-medium hover:bg-purple-600 transition-colors text-center block"
             >
               🔄 Status aktualisieren
-            </button>
+            </a>
             <a
               href={`/api/status/${result.subdomain}`}
               target="_blank"
@@ -142,12 +142,12 @@ export default async function DiscoveryPage({ params }: DiscoveryPageProps) {
           <p className="text-gray-600 mb-6">
             Beim Laden der Lernreise ist ein Fehler aufgetreten. Bitte versuche es erneut.
           </p>
-          <button
-            onClick={() => window.location.href = '/'}
-            className="w-full bg-purple-500 text-white py-3 px-6 rounded-lg font-medium hover:bg-purple-600 transition-colors"
+          <a
+            href="/"
+            className="w-full bg-purple-500 text-white py-3 px-6 rounded-lg font-medium hover:bg-purple-600 transition-colors text-center block"
           >
             🏠 Zur Startseite
-          </button>
+          </a>
         </div>
       </div>
     )
