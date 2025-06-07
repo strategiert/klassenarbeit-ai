@@ -24,7 +24,8 @@ export interface GeneratedLearningTool {
 }
 
 const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.DEEPSEEK_API_KEY,
+  baseURL: 'https://api.deepseek.com'
 })
 
 export async function generateInteractiveLearningTool(
@@ -97,7 +98,7 @@ Respond with JSON:
 `
 
   const response = await client.chat.completions.create({
-    model: "gpt-4",
+    model: "deepseek-chat",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.8
   })
@@ -156,7 +157,7 @@ Respond with JSON:
 `
 
   const response = await client.chat.completions.create({
-    model: "gpt-4",
+    model: "deepseek-chat",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.7
   })
@@ -208,7 +209,7 @@ Return only the React component code (no explanations):
 `
 
   const response = await client.chat.completions.create({
-    model: "gpt-4",
+    model: "deepseek-chat",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.6,
     max_tokens: 2000
@@ -246,7 +247,7 @@ Return only CSS code:
 `
 
   const response = await client.chat.completions.create({
-    model: "gpt-4",
+    model: "deepseek-chat",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.7,
     max_tokens: 1000
@@ -279,7 +280,7 @@ Return JavaScript/TypeScript code for the interaction logic:
 `
 
   const response = await client.chat.completions.create({
-    model: "gpt-4",
+    model: "deepseek-chat",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.5,
     max_tokens: 1500

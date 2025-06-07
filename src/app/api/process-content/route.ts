@@ -35,8 +35,10 @@ async function generateSubdomain(title: string): Promise<string> {
 }
 
 async function performResearch(topic: string, content: string): Promise<ResearchResult> {
+  // Use DeepSeek instead of OpenAI since it's properly configured
   const client = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
+    apiKey: process.env.DEEPSEEK_API_KEY,
+    baseURL: 'https://api.deepseek.com'
   })
 
   const prompt = `Du bist ein Experte für Bildungsinhalte. Erstelle für das Thema "${topic}" mit dem Inhalt "${content}" eine JSON-Antwort mit:
@@ -68,15 +70,15 @@ async function performResearch(topic: string, content: string): Promise<Research
 Antworte NUR mit JSON, keine anderen Texte.`
 
   try {
-    console.log('🧠 Calling GPT-4o-mini for comprehensive research...')
+    console.log('🧠 Calling DeepSeek for comprehensive research...')
     console.log('📝 Topic:', topic.substring(0, 50), '...')
     console.log('📄 Content length:', content?.length || 0)
-    console.log('🔑 OpenAI API Key configured:', !!process.env.OPENAI_API_KEY)
-    console.log('🔑 OpenAI API Key first 10 chars:', process.env.OPENAI_API_KEY?.substring(0, 10))
+    console.log('🔑 DeepSeek API Key configured:', !!process.env.DEEPSEEK_API_KEY)
+    console.log('🔑 DeepSeek API Key first 10 chars:', process.env.DEEPSEEK_API_KEY?.substring(0, 10))
     
-    console.log('🚀 Starting OpenAI API call...')
+    console.log('🚀 Starting DeepSeek API call...')
     const response = await client.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'deepseek-chat',
       messages: [
         {
           role: 'user',
@@ -86,11 +88,11 @@ Antworte NUR mit JSON, keine anderen Texte.`
       max_tokens: 8000,
       temperature: 0.7
     })
-    console.log('🎉 OpenAI API call completed successfully!')
+    console.log('🎉 DeepSeek API call completed successfully!')
 
     let responseContent = response.choices[0].message.content
     
-    console.log('✅ GPT-4o-mini research completed')
+    console.log('✅ DeepSeek research completed')
     console.log('📊 Response length:', responseContent?.length || 0)
     console.log('🔍 Response preview:', responseContent?.substring(0, 200) + '...')
     
@@ -108,7 +110,7 @@ Antworte NUR mit JSON, keine anderen Texte.`
     } catch (parseError) {
       console.error('JSON parse error:', parseError)
       console.error('Raw response that failed to parse:', responseContent)
-      throw new Error('Invalid JSON response from GPT-4o-mini')
+      throw new Error('Invalid JSON response from DeepSeek')
     }
     
     return researchJson
